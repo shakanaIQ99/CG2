@@ -4,7 +4,8 @@
 #include<cassert>
 #include<vector>
 #include<string>
-
+#include<DirectXMath.h>
+using namespace DirectX;
 
 #pragma comment(lib,"d3d12.lib")
 #pragma comment(lib,"dxgi.lib")
@@ -29,7 +30,7 @@ LRESULT WindowProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 {
 
-	#pragma region ƒEƒBƒ“ƒhƒEü‚è
+#pragma region ƒEƒBƒ“ƒhƒEü‚è
 	const int window_width = 1280;	//‰¡•
 	const int window_height = 720;	//c•
 
@@ -67,7 +68,8 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 	ShowWindow(hwnd, SW_SHOW);
 
 	MSG msg{};		//ƒƒbƒZ[ƒW
-	#pragma endregion	ƒEƒBƒ“ƒhƒEü‚è
+#pragma endregion	ƒEƒBƒ“ƒhƒEü‚è
+
 #pragma region DirectX‰Šú‰»ˆ—
 	//DirectX‰Šú‰»ˆ—@‚±‚±‚©‚ç@@[|||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||[|||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 #ifdef _DEBUG
@@ -222,6 +224,49 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 	//DirectX‰Šú‰»ˆ—@‚±‚±‚Ü‚Å@@[|||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||[|||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 #pragma endregion	DirectX‰Šú‰»ˆ—
 
+#pragma region	•`‰æ‰Šú‰»ˆ—
+
+	//’¸“_ƒf[ƒ^
+	XMFLOAT3 vertices[] =
+	{
+		{-0.5f,-0.5f,0.0f},
+		{-0.5f,0.5f,0.0f},
+		{0.5f,-0.5f,0.0f},
+	};
+
+	//’¸“_ƒf[ƒ^‘S‘Ì‚ÌƒTƒCƒY=’¸“_ƒf[ƒ^ˆê‚Â•ª‚ÌƒTƒCƒY*’¸“_ƒf[ƒ^‚Ì—v‘f”
+	UINT sizeVB = static_cast<UINT>(sizeof(XMFLOAT3) * _countof(vertices));
+
+	//’¸“_ƒoƒbƒtƒ@‚Ìİ’è
+	D3D12_HEAP_PROPERTIES heapProp{};		//ƒq[ƒvİ’è
+	heapProp.Type =D3D12_HEAP_TYPE_UPLOAD;	//GPU‚Ö‚Ì“]‘——p
+	//ƒŠƒ\[ƒXİ’è
+	D3D12_RESOURCE_DESC	resDesc{};
+	resDesc.Dimension = D3D12_RESOURCE_DIMENSION_BUFFER;
+	resDesc.Width = sizeVB;					//’¸“_ƒf[ƒ^‘S‘Ì‚ÌƒTƒCƒY
+	resDesc.Height = 1;
+	resDesc.DepthOrArraySize = 1;
+	resDesc.MipLevels = 1;
+	resDesc.SampleDesc.Count = 1;
+	resDesc.Layout = D3D12_TEXTURE_LAYOUT_ROW_MAJOR;
+
+	//’¸“_ƒoƒbƒtƒ@‚Ì¶¬
+	ID3D12Resource* vertBuff = nullptr;
+	result = device->CreateCommittedResource
+	(
+		&heapProp,
+		D3D12_HEAP_FLAG_NONE,
+		&resDesc,
+		D3D12_RESOURCE_STATE_GENERIC_READ,
+		nullptr,
+		IID_PPV_ARGS(&vertBuff)
+	);
+	assert(SUCCEEDED(result));
+
+
+
+
+#pragma endregion	•`‰æ‰Šú‰»ˆ—
 	//ƒQ[ƒ€ƒ‹[ƒv
 	while (true)
 	{
