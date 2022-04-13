@@ -28,9 +28,8 @@ LRESULT WindowProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 //WindowsƒAƒvƒŠ‚Å‚ÌƒGƒ“ƒgƒŠ[ƒ|ƒCƒ“ƒg(mainŠÖ”)
 int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 {
-	//ƒRƒ“ƒ\[ƒ‹‚Ö‚Ì•¶šo—Í
-	//OutputDebugStringA("Heloo,DirectX!!\n");
-	
+
+	#pragma region ƒEƒBƒ“ƒhƒEü‚è
 	const int window_width = 1280;	//‰¡•
 	const int window_height = 720;	//c•
 
@@ -68,7 +67,8 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 	ShowWindow(hwnd, SW_SHOW);
 
 	MSG msg{};		//ƒƒbƒZ[ƒW
-
+	#pragma endregion	ƒEƒBƒ“ƒhƒEü‚è
+#pragma region DirectX‰Šú‰»ˆ—
 	//DirectX‰Šú‰»ˆ—@‚±‚±‚©‚ç@@[|||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||[|||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 #ifdef _DEBUG
 	//ƒfƒoƒbƒOƒŒƒCƒ„[‚ğƒIƒ“‚É
@@ -89,7 +89,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 	ID3D12GraphicsCommandList* commandList = nullptr;
 	ID3D12CommandQueue* commandQueue = nullptr;
 	ID3D12DescriptorHeap* rtvHeap = nullptr;
-
+#pragma region	ƒAƒ_ƒvƒ^
 	//DXGIƒtƒ@ƒNƒgƒŠ[‚Ì¶¬
 	result = CreateDXGIFactory(IID_PPV_ARGS(&dxgiFactory));
 	assert(SUCCEEDED(result));
@@ -119,7 +119,9 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 			break;
 		}
 	}
+#pragma endregion ƒAƒ_ƒvƒ^
 
+#pragma region	ƒfƒoƒCƒX
 	//‘Î‰ƒŒƒxƒ‹‚Ì”z—ñ
 	D3D_FEATURE_LEVEL levels[] =
 	{
@@ -141,7 +143,9 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 			break;
 		}
 	}
+#pragma endregion	ƒfƒoƒCƒX
 
+#pragma region ƒRƒ}ƒ“ƒh
 	//ƒRƒ}ƒ“ƒhƒAƒƒP[ƒ^[‚ğ¶¬
 	result = device->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS(&commandAllocator));
 	assert(SUCCEEDED(result));
@@ -155,7 +159,9 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 	//ƒRƒ}ƒ“ƒhƒLƒ…[‚ğ¶¬
 	result = device->CreateCommandQueue(&commandQueueDesc, IID_PPV_ARGS(&commandQueue));
 	assert(SUCCEEDED(result));
+#pragma endregion	ƒRƒ}ƒ“ƒh
 
+#pragma region	ƒXƒƒbƒvƒ`ƒF[ƒ“
 	//ƒXƒƒbƒvƒ`ƒF[ƒ“‚Ìİ’è
 	DXGI_SWAP_CHAIN_DESC1 swapChainDesc{};
 	swapChainDesc.Width = 1280;
@@ -169,7 +175,9 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 
 	result = dxgiFactory->CreateSwapChainForHwnd(commandQueue, hwnd, &swapChainDesc, nullptr, nullptr, (IDXGISwapChain1**)&swapChain);
 	assert(SUCCEEDED(result));
+#pragma endregion	ƒXƒƒbƒvƒ`ƒF[ƒ“
 
+#pragma region	ƒfƒXƒNƒŠƒvƒ^ƒq[ƒv
 	//ƒfƒXƒNƒŠƒvƒ^ƒq[ƒv‚Ìİ’è
 	D3D12_DESCRIPTOR_HEAP_DESC rtvHeapDesc{};
 	rtvHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_RTV;			//ƒŒƒ“ƒ_[ƒ^[ƒQƒbƒgƒrƒ…[
@@ -177,11 +185,14 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 
 	//ƒfƒXƒNƒŠƒvƒ^ƒq[ƒv‚Ì¶¬
 	device->CreateDescriptorHeap(&rtvHeapDesc, IID_PPV_ARGS(&rtvHeap));
+#pragma endregion	ƒfƒXƒNƒŠƒvƒ^ƒq[ƒv
+
 
 	//ƒoƒbƒNƒoƒbƒtƒ@
 	std::vector<ID3D12Resource*> backBuffers;
 	backBuffers.resize(swapChainDesc.BufferCount);
 
+#pragma region	ƒŒƒ“ƒ_[ƒ^[ƒQƒbƒgƒrƒ…[
 	//ƒXƒƒbƒvƒ`ƒF[ƒ“‚Ì‘S‚Ä‚Ìƒoƒbƒtƒ@‚É‚Â‚¢‚Äˆ—‚·‚é
 	for (size_t i = 0; i < backBuffers.size(); i++)
 	{
@@ -199,6 +210,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 		//ƒŒƒ“ƒ_[ƒ^[ƒQƒbƒgƒrƒ…[‚Ì¶¬
 		device->CreateRenderTargetView(backBuffers[i], &rtvDesc, rtvHandle);
 	}
+#pragma endregion	ƒŒƒ“ƒ_[ƒ^[ƒQƒbƒgƒrƒ…[
 
 	//ƒtƒFƒ“ƒX‚Ì¶¬
 	ID3D12Fence* fence = nullptr;
@@ -208,6 +220,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 
 
 	//DirectX‰Šú‰»ˆ—@‚±‚±‚Ü‚Å@@[|||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||[|||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
+#pragma endregion	DirectX‰Šú‰»ˆ—
 
 	//ƒQ[ƒ€ƒ‹[ƒv
 	while (true)
@@ -224,7 +237,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 		{
 			break;
 		}
-
+		#pragma region DirectX–ˆƒtƒŒ[ƒ€
 		//DirecX–ˆƒtƒŒ[ƒ€@‚±‚±‚©‚ç@@[|||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||[|||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 		
 		//ƒoƒbƒNƒoƒbƒtƒ@‚Ì”Ô†‚ğæ“¾(2‚Â‚È‚Ì‚Å0”Ô‚©1”Ô)
@@ -246,7 +259,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 		//3. ‰æ–ÊƒNƒŠƒA
 		FLOAT clearColor[] = { 0.1f,0.25f,0.5f,0.0f };	//F‚Ìw’è‚ÍRGBA‚Ì0.0f`1.0f
 		commandList->ClearRenderTargetView(rtvHandle, clearColor, 0, nullptr);
-
+	#pragma region •`‰æƒRƒ}ƒ“ƒh
 		//--------------4.•`‰æƒRƒ}ƒ“ƒh@‚±‚±‚©‚ç---------------//
 		 
 		
@@ -254,7 +267,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 
 
 		//--------------4.•`‰æƒRƒ}ƒ“ƒh@‚±‚±‚Ü‚Å---------------//
-
+	#pragma endregion •`‰æƒRƒ}ƒ“ƒh
 		//5. ƒŠƒ\[ƒXƒoƒŠƒA‚ğ–ß‚·
 		barrierDesc.Transition.StateBefore = D3D12_RESOURCE_STATE_RENDER_TARGET;	//•`‰æó‘Ô‚©‚ç
 		barrierDesc.Transition.StateAfter = D3D12_RESOURCE_STATE_PRESENT;			//•\¦ó‘Ô‚Ö
@@ -290,7 +303,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 
 
 		//DirecX–ˆƒtƒŒ[ƒ€@‚±‚±‚Ü‚Å@@[|||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||[|||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
-
+		#pragma endregion	DirectX–ˆƒtƒŒ[ƒ€
 	}
 	
 	return 0;
