@@ -85,7 +85,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 	ID3D12Device* device = nullptr;
 	IDXGIFactory7* dxgiFactory = nullptr;
 	IDXGISwapChain4* swapChain = nullptr;
-	ID3D12CommandAllocator* cmdAllocator = nullptr;
+	ID3D12CommandAllocator* commandAllocator = nullptr;
 	ID3D12GraphicsCommandList* commandList = nullptr;
 	ID3D12CommandQueue* commandQueue = nullptr;
 	ID3D12DescriptorHeap* rtvHeap = nullptr;
@@ -143,11 +143,11 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 	}
 
 	//ÉRÉ}ÉìÉhÉAÉçÉPÅ[É^Å[Çê∂ê¨
-	result = device->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS(&cmdAllocator));
+	result = device->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS(&commandAllocator));
 	assert(SUCCEEDED(result));
 	
 	//ÉRÉ}ÉìÉhÉäÉXÉgÇê∂ê¨
-	result = device->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT, cmdAllocator, nullptr, IID_PPV_ARGS(&commandList));
+	result = device->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT, commandAllocator, nullptr, IID_PPV_ARGS(&commandList));
 	assert(SUCCEEDED(result));
 
 	//ÉRÉ}ÉìÉhÉLÉÖÅ[ÇÃê›íË
@@ -226,6 +226,67 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 		}
 
 		//DirecXñàÉtÉåÅ[ÉÄÅ@Ç±Ç±Ç©ÇÁÅ@Å@Å[Å|Å|Å|Å|Å|Å|Å|Å|Å|Å|Å|Å|Å|Å|Å|Å|Å|Å|Å|Å|Å|Å|Å|Å|Å|Å|Å|Å|Å|Å|Å|Å|Å|Å|Å|Å|Å|Å|Å|Å|Å|Å|Å|Å|Å|Å|Å|Å|Å|Å|Å|Å|Å|Å|Å|Å|Å|Å|Å|Å|Å|Å|Å|Å[Å|Å|Å|Å|Å|Å|Å|Å|Å|Å|Å|Å|Å|Å|Å|Å|Å|Å|Å|Å|Å|Å|Å|Å|Å|Å|Å|Å|Å|Å|Å|Å|Å|Å|Å|Å|Å|Å|Å|Å|Å|Å|Å|Å|Å|Å|Å|Å|Å|Å|Å|Å|Å|Å|Å|Å|Å|Å|Å|Å|Å|Å|Å|
+		
+		//ÉoÉbÉNÉoÉbÉtÉ@ÇÃî‘çÜÇéÊìæ(2Ç¬Ç»ÇÃÇ≈0î‘Ç©1î‘)
+		UINT bbIndex = swapChain->GetCurrentBackBufferIndex();
+
+		//1.ÉäÉ\Å[ÉXÉoÉäÉAÇ≈èëÇ´çûÇ›â¬î\Ç…ïœçX
+		D3D12_RESOURCE_BARRIER barrierDesc{};
+		barrierDesc.Transition.pResource = backBuffers[bbIndex];				//ÉoÉbÉNÉoÉbÉtÉ@ÇéwíË
+		barrierDesc.Transition.StateBefore = D3D12_RESOURCE_STATE_PRESENT;		//ï\é¶èÛë‘Ç©ÇÁ
+		barrierDesc.Transition.StateAfter = D3D12_RESOURCE_STATE_RENDER_TARGET;	//ï`âÊèÛë‘Ç÷
+		commandList->ResourceBarrier(1, &barrierDesc);
+
+		//2. ï`âÊêÊÇÃïœçX
+		//ÉåÉìÉ_Å[É^Å[ÉQÉbÉgÉrÉÖÅ[ÇÃÉnÉìÉhÉãÇéÊìæ
+		D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle = rtvHeap->GetCPUDescriptorHandleForHeapStart();
+		rtvHandle.ptr += bbIndex * device->GetDescriptorHandleIncrementSize(rtvHeapDesc.Type);
+		commandList->OMSetRenderTargets(1, &rtvHandle, false, nullptr);
+
+		//3. âÊñ ÉNÉäÉA
+		FLOAT clearColor[] = { 0.1f,0.25f,0.5f,0.0f };	//êFÇÃéwíËÇÕRGBAÇÃ0.0fÅ`1.0f
+		commandList->ClearRenderTargetView(rtvHandle, clearColor, 0, nullptr);
+
+		//--------------4.ï`âÊÉRÉ}ÉìÉhÅ@Ç±Ç±Ç©ÇÁ---------------//
+		 
+		
+
+
+
+		//--------------4.ï`âÊÉRÉ}ÉìÉhÅ@Ç±Ç±Ç‹Ç≈---------------//
+
+		//5. ÉäÉ\Å[ÉXÉoÉäÉAÇñﬂÇ∑
+		barrierDesc.Transition.StateBefore = D3D12_RESOURCE_STATE_RENDER_TARGET;	//ï`âÊèÛë‘Ç©ÇÁ
+		barrierDesc.Transition.StateAfter = D3D12_RESOURCE_STATE_PRESENT;			//ï\é¶èÛë‘Ç÷
+		commandList->ResourceBarrier(1, &barrierDesc);
+
+		//ñΩóﬂÇÃÉNÉçÅ[ÉY
+		result = commandList->Close();
+		assert(SUCCEEDED(result));
+		//ÉRÉ}ÉìÉhÉäÉXÉgÇÃé¿çs
+		ID3D12CommandList* commandLists[] = { commandList };
+		commandQueue->ExecuteCommandLists(1, commandLists);
+
+		//âÊñ Ç…ï\é¶Ç∑ÇÈÉoÉbÉtÉ@ÇÉtÉäÉbÉv(ó†ï\ÇÃì¸ÇÍë÷Ç¶)
+		result = swapChain->Present(1, 0);
+		assert(SUCCEEDED(result));
+
+		//ÉRÉ}ÉìÉhÇÃé¿çsäÆóπÇë“Ç¬
+		commandQueue->Signal(fence, ++fenceVal);
+		if (fence->GetCompletedValue() != fenceVal)
+		{
+			HANDLE event = CreateEvent(nullptr, false, false, nullptr);
+			fence->SetEventOnCompletion(fenceVal, event);
+			WaitForSingleObject(event, INFINITE);
+			CloseHandle(event);
+		}
+
+		//ÉLÉÖÅ[ÇÉNÉäÉA
+		result = commandAllocator->Reset();
+		assert(SUCCEEDED(result));
+		//çƒÇ—ÉRÉ}ÉìÉhÉäÉXÉgÇÇΩÇﬂÇÈèÄîı
+		result = commandList->Reset(commandAllocator, nullptr);
+		assert(SUCCEEDED(result));
 
 
 		//DirecXñàÉtÉåÅ[ÉÄÅ@Ç±Ç±Ç‹Ç≈Å@Å@Å[Å|Å|Å|Å|Å|Å|Å|Å|Å|Å|Å|Å|Å|Å|Å|Å|Å|Å|Å|Å|Å|Å|Å|Å|Å|Å|Å|Å|Å|Å|Å|Å|Å|Å|Å|Å|Å|Å|Å|Å|Å|Å|Å|Å|Å|Å|Å|Å|Å|Å|Å|Å|Å|Å|Å|Å|Å|Å|Å|Å|Å|Å|Å|Å[Å|Å|Å|Å|Å|Å|Å|Å|Å|Å|Å|Å|Å|Å|Å|Å|Å|Å|Å|Å|Å|Å|Å|Å|Å|Å|Å|Å|Å|Å|Å|Å|Å|Å|Å|Å|Å|Å|Å|Å|Å|Å|Å|Å|Å|Å|Å|Å|Å|Å|Å|Å|Å|Å|Å|Å|Å|Å|Å|Å|Å|Å|Å|
