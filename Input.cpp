@@ -2,14 +2,14 @@
 #include"DXInitialize.h"
 
 
-Input::Input()
+Input::Input(WNDCLASSEX w, HWND hwnd)
 {
 #pragma region	キーボード周り
 	HRESULT result;
 
 	//DirectInputの初期化
 	directInput = nullptr;
-	result = DirectInput8Create(DXWindow().w.hInstance, DIRECTINPUT_VERSION, IID_IDirectInput8, (void**)&directInput, nullptr);
+	result = DirectInput8Create(w.hInstance, DIRECTINPUT_VERSION, IID_IDirectInput8, (void**)&directInput, nullptr);
 	assert(SUCCEEDED(result));
 
 	//キーボードデバイスの生成
@@ -22,7 +22,7 @@ Input::Input()
 	assert(SUCCEEDED(result));
 
 	//排他制御レベルのセット
-	result = keyboard->SetCooperativeLevel(DXWindow().hwnd, DISCL_FOREGROUND | DISCL_NONEXCLUSIVE | DISCL_NOWINKEY);
+	result = keyboard->SetCooperativeLevel(hwnd, DISCL_FOREGROUND | DISCL_NONEXCLUSIVE | DISCL_NOWINKEY);
 	assert(SUCCEEDED(result));
 
 #pragma endregion	キーボード周り初期化

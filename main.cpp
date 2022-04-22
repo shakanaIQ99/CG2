@@ -7,6 +7,7 @@ using namespace DirectX;
 
 #include"DXInitialize.h"
 #include"Input.h"
+#include"DXWindow.h"
 
 
 
@@ -28,9 +29,9 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 #endif	
 	HRESULT result;
 	//DirectX‰Šú‰»ˆ—
-	DXInitialize* dxInitialize=new DXInitialize(&_window);
+	DXInitialize* dxInitialize=new DXInitialize(_window.hwnd);
 	//“ü—ÍŠÖ”
-	Input _input;
+	Input* _input=new Input(_window.w,_window.hwnd);
 #pragma region	•`‰æ‰Šú‰»ˆ—
 
 
@@ -255,11 +256,11 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 		//DirecX–ˆƒtƒŒ[ƒ€@‚±‚±‚©‚ç@@[|||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||[|||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||
 		
 		//ƒL[ƒ{[ƒhî•ñ‚ÌŽæ“¾ŠJŽn
-		_input.keyboard->Acquire();
+		_input->keyboard->Acquire();
 
 		//‘SƒL[‚Ì“ü—Íó‘Ô‚ðŽæ“¾‚·‚é
 		BYTE key[256] = {};
-		_input.keyboard->GetDeviceState(sizeof(key), key);
+		_input->keyboard->GetDeviceState(sizeof(key), key);
 
 		
 
@@ -368,6 +369,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 	}
 	
 	delete dxInitialize;
+	delete _input;
 
 	return 0;
 }

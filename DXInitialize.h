@@ -8,7 +8,6 @@
 #pragma comment(lib,"d3d12.lib")
 #pragma comment(lib,"dxgi.lib")
 	
-#include"DXWindow.h"
 
 class DXInitialize
 {
@@ -50,10 +49,10 @@ public:
 	ID3D12Fence* fence;
 	UINT64 fenceVal;
 
-	DXWindow dxwindow;
+	
 
 public:
-	DXInitialize(DXWindow* dxwindow);
+	DXInitialize(HWND hwnd);
 
 	
 };

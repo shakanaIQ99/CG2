@@ -1,7 +1,7 @@
 #include "DXInitialize.h"
 
 
-DXInitialize::DXInitialize(DXWindow* dxwindow)
+DXInitialize::DXInitialize(HWND hwnd)
 {
 	HRESULT result;
 	device = nullptr;
@@ -88,7 +88,7 @@ DXInitialize::DXInitialize(DXWindow* dxwindow)
 	swapChainDesc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;		//フリップ後は破棄
 	swapChainDesc.Flags = DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;	//スワップチェーンの生成
 
-	result = dxgiFactory->CreateSwapChainForHwnd(commandQueue, dxwindow->hwnd, &swapChainDesc, nullptr, nullptr, (IDXGISwapChain1**)&swapChain);
+	result = dxgiFactory->CreateSwapChainForHwnd(commandQueue, hwnd, &swapChainDesc, nullptr, nullptr, (IDXGISwapChain1**)&swapChain);
 	assert(SUCCEEDED(result));
 #pragma endregion	スワップチェーン
 

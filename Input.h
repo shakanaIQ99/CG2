@@ -10,6 +10,6 @@ public:
 	IDirectInput8* directInput;
 	IDirectInputDevice8* keyboard;
 public:
-	Input();
+	Input(WNDCLASSEX w, HWND hwnd);
 };
 
