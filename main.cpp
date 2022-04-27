@@ -42,6 +42,9 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 		{-0.5f,-0.5f,0.0f},
 		{-0.5f,+0.5f,0.0f},
 		{+0.5f,-0.5f,0.0f},
+		{-0.5f,+0.5f,0.0f},
+		{+0.5f,-0.5f,0.0f},
+		{+0.5f,+0.5f,0.0f},
 	};
 
 	//頂点データ全体のサイズ=頂点データ一つ分のサイズ*頂点データの要素数
@@ -298,7 +301,9 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 	float color_Red = 0.1f;
 	float color_Green = 0.25f;
 
-	bool S = false;
+	bool wire_draw = false;
+	bool cube_draw = false;
+	int draw_buffer = 3;
 
 	//ゲームループ
 	while (true)
@@ -331,16 +336,29 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 		}
 		if (_input->GetPressKey(DIK_2))
 		{
-			switch (S)
+			switch (wire_draw)
 			{
 			case 0:
-				S = true;
+				wire_draw = true;
 
 				break;
 			case 1:
-				S = false;
-
-
+				wire_draw = false;
+				break;
+			}
+		}
+		if (_input->GetPressKey(DIK_1))
+		{
+			switch (cube_draw)
+			{
+			case 0:
+				cube_draw = true;
+				draw_buffer = 6;
+				break;
+			case 1:
+				cube_draw = false;
+				draw_buffer = 3;
+				break;
 			}
 		}
 
@@ -393,12 +411,12 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 
 		//パイプラインステートとルートシグネチャの設定コマンド
 		
-		if (S)
+		if (wire_draw)
 		{
 			dxInitialize->commandList->SetPipelineState(pipelineState2);
 			dxInitialize->commandList->SetGraphicsRootSignature(rootSignature2);
 		}
-		else if(!S)
+		else if(!wire_draw)
 		{
 			dxInitialize->commandList->SetPipelineState(pipelineState);
 			dxInitialize->commandList->SetGraphicsRootSignature(rootSignature);
@@ -410,7 +428,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 		dxInitialize->commandList->IASetVertexBuffers(0, 1, &vbView);
 
 		//描画コマンド
-		dxInitialize->commandList->DrawInstanced(_countof(vertices), 1, 0, 0);	//全ての頂点を使って描画
+		dxInitialize->commandList->DrawInstanced(draw_buffer, 1, 0, 0);	//全ての頂点を使って描画
 
 		//ビューポート設定コマンド
 		D3D12_VIEWPORT viewport2{};
@@ -424,7 +442,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 		//ビューポート設定コマンドを、コマンドリストに積む
 		dxInitialize->commandList->RSSetViewports(1, &viewport2);
 
-		dxInitialize->commandList->DrawInstanced(_countof(vertices), 1, 0, 0);	//全ての頂点を使って描画
+		dxInitialize->commandList->DrawInstanced(draw_buffer, 1, 0, 0);	//全ての頂点を使って描画
 
 		//ビューポート設定コマンド
 		D3D12_VIEWPORT viewport3{};
@@ -438,7 +456,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 		//ビューポート設定コマンドを、コマンドリストに積む
 		dxInitialize->commandList->RSSetViewports(1, &viewport3);
 
-		dxInitialize->commandList->DrawInstanced(_countof(vertices), 1, 0, 0);	//全ての頂点を使って描画
+		dxInitialize->commandList->DrawInstanced(draw_buffer, 1, 0, 0);	//全ての頂点を使って描画
 
 		//ビューポート設定コマンド
 		D3D12_VIEWPORT viewport4{};
@@ -452,7 +470,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 		//ビューポート設定コマンドを、コマンドリストに積む
 		dxInitialize->commandList->RSSetViewports(1, &viewport4);
 
-		dxInitialize->commandList->DrawInstanced(_countof(vertices), 1, 0, 0);	//全ての頂点を使って描画
+		dxInitialize->commandList->DrawInstanced(draw_buffer, 1, 0, 0);	//全ての頂点を使って描画
 
 		//--------------4.描画コマンド　ここまで---------------//
 	#pragma endregion 描画コマンド
