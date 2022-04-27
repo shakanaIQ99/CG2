@@ -187,7 +187,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 	//ラスタライザの設定
 	pipelineDesc.RasterizerState.CullMode = D3D12_CULL_MODE_NONE; //カリングしない
 	pipelineDesc.RasterizerState.FillMode = D3D12_FILL_MODE_SOLID; //ポリゴン内塗りつぶし
-	//pipelineDesc.RasterizerState.FillMode = D3D12_FILL_MODE_WIREFRAME; //ワイヤーフレーム(どちらか片方)
+	
 	pipelineDesc.RasterizerState.DepthClipEnable = true;	//深度クリッピングを有効に
 
 	//ブレンドステート
@@ -230,13 +230,75 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 
 #pragma endregion	グラフィックスパイプライン
 
+#pragma region グラフィックスパイプライン2
+
+	//グラフィックスパイプライン設定
+	D3D12_GRAPHICS_PIPELINE_STATE_DESC pipelineDesc2{};
+
+	//シェーダーの設定
+	pipelineDesc2.VS.pShaderBytecode = vsBlob->GetBufferPointer();
+	pipelineDesc2.VS.BytecodeLength = vsBlob->GetBufferSize();
+	pipelineDesc2.PS.pShaderBytecode = psBlob->GetBufferPointer();
+	pipelineDesc2.PS.BytecodeLength = psBlob->GetBufferSize();
+
+	//サンプルマスクの設定
+	pipelineDesc2.SampleMask = D3D12_DEFAULT_SAMPLE_MASK; //標準設定
+
+	//ラスタライザの設定
+	pipelineDesc2.RasterizerState.CullMode = D3D12_CULL_MODE_NONE; //カリングしない
+	
+	pipelineDesc2.RasterizerState.FillMode = D3D12_FILL_MODE_WIREFRAME; //ワイヤーフレーム(どちらか片方)
+	pipelineDesc2.RasterizerState.DepthClipEnable = true;	//深度クリッピングを有効に
+
+	//ブレンドステート
+	pipelineDesc2.BlendState.RenderTarget[0].RenderTargetWriteMask = D3D12_COLOR_WRITE_ENABLE_ALL; //RGBA全てのチャンネルを描画
+
+	//頂点レイアウトの設定
+	pipelineDesc2.InputLayout.pInputElementDescs = inputLayout;
+	pipelineDesc2.InputLayout.NumElements = _countof(inputLayout);
+
+	//図形の形状設定
+	pipelineDesc2.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
+
+	//その他の設定
+	pipelineDesc2.NumRenderTargets = 1; // 描画対象は1つ
+	pipelineDesc2.RTVFormats[0] = DXGI_FORMAT_R8G8B8A8_UNORM_SRGB;	//0～255指定のRGBA
+	pipelineDesc2.SampleDesc.Count = 1;	//1ピクセルにつき1回サンプリング
+
+	//ルートシグネチャ
+	ID3D12RootSignature* rootSignature2;
+
+	//ルートシグネチャの設定
+	D3D12_ROOT_SIGNATURE_DESC rootSignatureDesc2{};
+	rootSignatureDesc2.Flags = D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT;
+
+	//ルートシグネチャのシリアライズ
+	ID3DBlob* rootSigBlob2 = nullptr;
+	result = D3D12SerializeRootSignature(&rootSignatureDesc2, D3D_ROOT_SIGNATURE_VERSION_1_0, &rootSigBlob2, &errorBlob);
+	assert(SUCCEEDED(result));
+	result = dxInitialize->device->CreateRootSignature(0, rootSigBlob2->GetBufferPointer(), rootSigBlob2->GetBufferSize(), IID_PPV_ARGS(&rootSignature2));
+	assert(SUCCEEDED(result));
+	rootSigBlob2->Release();
+
+	//パイプラインにルートシグネチャをセット
+	pipelineDesc2.pRootSignature = rootSignature2;
+
+	//パイプラインステートの生成
+	ID3D12PipelineState* pipelineState2 = nullptr;
+	result = dxInitialize->device->CreateGraphicsPipelineState(&pipelineDesc2, IID_PPV_ARGS(&pipelineState2));
+	assert(SUCCEEDED(result));
+
+#pragma endregion	グラフィックスパイプライン2
+
 #pragma endregion	描画初期化処理
 
 
 	//変数初期化場所
-	float color_Blue = 0.0f;
+	float color_Blue = 0.5f;
 	float color_Red = 0.1f;
 	float color_Green = 0.25f;
+
+	bool S = false;
 
 	//ゲームループ
 	while (true)
@@ -256,20 +318,31 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 		#pragma region DirectX毎フレーム
 		//DirecX毎フレーム　ここから　　ー－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－ー－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－
 		
-		//キーボード情報の取得開始
-		_input->keyboard->Acquire();
-
-		//全キーの入力状態を取得する
-		BYTE key[256] = {};
-		_input->keyboard->GetDeviceState(sizeof(key), key);
-
+		_input->InputUpdate();
 		
 
-		if (key[DIK_SPACE])
+		if (_input->GetKey(DIK_SPACE))
 		{
-			color_Blue += 0.01f;
+			color_Red = 1.0f;
 		}
+		else
+		{
+			color_Red = 0.1f;
+		}
+		if (_input->GetPressKey(DIK_2))
+		{
+			switch (S)
+			{
+			case 0:
+				S = true;
 
+				break;
+			case 1:
+				S = false;
+
+
+			}
+		}
 
 		//バックバッファの番号を取得(2つなので0番か1番)
 		UINT bbIndex = dxInitialize->swapChain->GetCurrentBackBufferIndex();
@@ -296,8 +369,8 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 		
 		 //ビューポート設定コマンド
 		D3D12_VIEWPORT viewport{};
-		viewport.Width = window_width;
-		viewport.Height = window_height;
+		viewport.Width = window_width -window_width/3;
+		viewport.Height = window_height- window_height/3;
 		viewport.TopLeftX = 0;
 		viewport.TopLeftY = 0;
 		viewport.MinDepth = 0.0f;
@@ -305,6 +378,8 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 
 		//ビューポート設定コマンドを、コマンドリストに積む
 		dxInitialize->commandList->RSSetViewports(1, &viewport);
+
+		
 
 		//シザー矩形
 		D3D12_RECT scissorRect{};
@@ -317,9 +392,17 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 		dxInitialize->commandList->RSSetScissorRects(1, &scissorRect);
 
 		//パイプラインステートとルートシグネチャの設定コマンド
-		dxInitialize->commandList->SetPipelineState(pipelineState);
-		dxInitialize->commandList->SetGraphicsRootSignature(rootSignature);
 		
+		if (S)
+		{
+			dxInitialize->commandList->SetPipelineState(pipelineState2);
+			dxInitialize->commandList->SetGraphicsRootSignature(rootSignature2);
+		}
+		else if(!S)
+		{
+			dxInitialize->commandList->SetPipelineState(pipelineState);
+			dxInitialize->commandList->SetGraphicsRootSignature(rootSignature);
+		}
 		//プリミティブ形状の設定コマンド
 		dxInitialize->commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);	//三角形リスト
 
@@ -327,6 +410,48 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 		dxInitialize->commandList->IASetVertexBuffers(0, 1, &vbView);
 
 		//描画コマンド
+		dxInitialize->commandList->DrawInstanced(_countof(vertices), 1, 0, 0);	//全ての頂点を使って描画
+
+		//ビューポート設定コマンド
+		D3D12_VIEWPORT viewport2{};
+		viewport2.Width = window_width / 3;
+		viewport2.Height = window_height - window_height / 3;
+		viewport2.TopLeftX = window_width - window_width / 3;
+		viewport2.TopLeftY = 0;
+		viewport2.MinDepth = 0.0f;
+		viewport2.MaxDepth = 1.0f;
+
+		//ビューポート設定コマンドを、コマンドリストに積む
+		dxInitialize->commandList->RSSetViewports(1, &viewport2);
+
+		dxInitialize->commandList->DrawInstanced(_countof(vertices), 1, 0, 0);	//全ての頂点を使って描画
+
+		//ビューポート設定コマンド
+		D3D12_VIEWPORT viewport3{};
+		viewport3.Width = window_width - window_width / 3;
+		viewport3.Height = window_height / 3;
+		viewport3.TopLeftX =0;
+		viewport3.TopLeftY = window_height-window_height/3;
+		viewport3.MinDepth = 0.0f;
+		viewport3.MaxDepth = 1.0f;
+
+		//ビューポート設定コマンドを、コマンドリストに積む
+		dxInitialize->commandList->RSSetViewports(1, &viewport3);
+
+		dxInitialize->commandList->DrawInstanced(_countof(vertices), 1, 0, 0);	//全ての頂点を使って描画
+
+		//ビューポート設定コマンド
+		D3D12_VIEWPORT viewport4{};
+		viewport4.Width = window_width / 3;
+		viewport4.Height = window_height / 3;
+		viewport4.TopLeftX = window_width - window_width / 3;
+		viewport4.TopLeftY = window_height - window_height / 3;
+		viewport4.MinDepth = 0.0f;
+		viewport4.MaxDepth = 1.0f;
+
+		//ビューポート設定コマンドを、コマンドリストに積む
+		dxInitialize->commandList->RSSetViewports(1, &viewport4);
+
 		dxInitialize->commandList->DrawInstanced(_countof(vertices), 1, 0, 0);	//全ての頂点を使って描画
 
 		//--------------4.描画コマンド　ここまで---------------//
