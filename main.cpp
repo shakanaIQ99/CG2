@@ -9,7 +9,7 @@ using namespace DirectX;
 #include"Input.h"
 #include"DXWindow.h"
 
-
+#include <DirectXTex.h>
 
 
 
@@ -416,30 +416,53 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 	assert(SUCCEEDED(result));
 
 	//値を書き込むと自動的に転送される
-	constMapMaterial->color = XMFLOAT4(1, 1, 1, 1);			//RGBAで半透明
+	constMapMaterial->color = XMFLOAT4(1, 0, 0, 1);			//RGBAで半透明
 
 
 #pragma endregion 定数バッファ兼カラー初期化 
 	
 #pragma region 画像イメージデータ
 
-	//横方向ピクセル数
-	const size_t textureWidth = 256;
-	//縦方向ピクセル数
-	const size_t textureHeight = 256;
-	//配列の要素数
-	const size_t imageDataCount = textureWidth * textureHeight;
-	//画像イメージデータ配列
-	XMFLOAT4* imageData = new XMFLOAT4[imageDataCount];
+	TexMetadata metadata{};
+	ScratchImage scratchImg{};
+	//WICテクスチャのロード
+	result = LoadFromWICFile(
+		L"Resources/genba_hako.png",
+		WIC_FLAGS_NONE,
+		&metadata, scratchImg
+	);
 
-	//全ピクセルの色を初期化
-	for (size_t i = 0; i < imageDataCount; i++)
+	ScratchImage mipChain{};
+	//ミニマップ生成
+	result = GenerateMipMaps(
+		scratchImg.GetImages(), scratchImg.GetImageCount(), scratchImg.GetMetadata(), TEX_FILTER_DEFAULT, 0, mipChain
+	);
+	if (SUCCEEDED(result))
 	{
-		imageData[i].x = 1.0f;
-		imageData[i].y = 0.0f;
-		imageData[i].z = 0.0f;
-		imageData[i].w = 1.0f;
+		scratchImg = std::move(mipChain);
+		metadata = scratchImg.GetMetadata();
 	}
+
+	//読み込んだディフューズテクスチャをSRGBとして扱う
+	metadata.format = MakeSRGB(metadata.format);
+
+	////横方向ピクセル数
+	//const size_t textureWidth = 256;
+	////縦方向ピクセル数
+	//const size_t textureHeight = 256;
+	////配列の要素数
+	//const size_t imageDataCount = textureWidth * textureHeight;
+	////画像イメージデータ配列
+	//XMFLOAT4* imageData = new XMFLOAT4[imageDataCount];
+
+	////全ピクセルの色を初期化
+	//for (size_t i = 0; i < imageDataCount; i++)
+	//{
+	//	imageData[i].x = 1.0f;
+	//	imageData[i].y = 0.0f;
+	//	imageData[i].z = 0.0f;
+	//	imageData[i].w = 1.0f;
+	//}
 
 #pragma endregion 画像イメージデータ
 
@@ -454,11 +477,11 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 	//リソース設定
 	D3D12_RESOURCE_DESC textureResourceDesc{};
 	textureResourceDesc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
-	textureResourceDesc.Format = DXGI_FORMAT_R32G32B32A32_FLOAT;
-	textureResourceDesc.Width = textureWidth;	//幅
-	textureResourceDesc.Height = textureHeight;	//高さ
-	textureResourceDesc.DepthOrArraySize = 1;
-	textureResourceDesc.MipLevels = 1;
+	textureResourceDesc.Format =metadata.format;
+	textureResourceDesc.Width = metadata.width;	//幅
+	textureResourceDesc.Height = (UINT)metadata.height;	//高さ
+	textureResourceDesc.DepthOrArraySize = (UINT16)metadata.arraySize;
+	textureResourceDesc.MipLevels = (UINT16)metadata.mipLevels;
 	textureResourceDesc.SampleDesc.Count = 1;
 
 	//テクスチャバッファの生成
@@ -475,16 +498,35 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 
 #pragma region テクスチャバッファ転送
 
-	//テクスチャバッファにデータ転送
-	result = texBuff->WriteToSubresource(
-		0,
-		nullptr,	//全領域へコピー
-		imageData,	//元データアドレス
-		sizeof(XMFLOAT4) * textureWidth,	//1ラインサイズ
-		sizeof(XMFLOAT4) * imageDataCount	//全サイズ
-	);
+	//全ミップマップについて
+	for (size_t i = 0; i < metadata.mipLevels; i++)
+	{
+		//ミップマップレベルを指定してイメージを取得
+		const Image* img = scratchImg.GetImage(i, 0, 0);
+		//テクスチャバッファにデータ転送
+		result = texBuff->WriteToSubresource(
+			(UINT)i,
+			nullptr,				//全領域へコピー
+			img->pixels,			//元データアドレス
+			(UINT)img->rowPitch,	//1ラインサイズ
+			(UINT)img->slicePitch	//1枚サイズ
+		);
+		assert(SUCCEEDED(result));
+	}
 
-	delete[]imageData;
+
+
+
+	////テクスチャバッファにデータ転送
+	//result = texBuff->WriteToSubresource(
+	//	0,
+	//	nullptr,	//全領域へコピー
+	//	imageData,	//元データアドレス
+	//	sizeof(XMFLOAT4) * textureWidth,	//1ラインサイズ
+	//	sizeof(XMFLOAT4) * imageDataCount	//全サイズ
+	//);
+
+	//delete[]imageData;
 #pragma endregion テクスチャバッファ転送
 
 #pragma region デスクリプタヒープ設定
@@ -512,10 +554,10 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 
 	//シェーダーリソースビュー設定
 	D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc{};	//設定構造体
-	srvDesc.Format = DXGI_FORMAT_R32G32B32A32_FLOAT;
+	srvDesc.Format = resDesc.Format;
 	srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
 	srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
-	srvDesc.Texture2D.MipLevels = 1;
+	srvDesc.Texture2D.MipLevels = resDesc.MipLevels;
 
 	//ハンドルの指す位置にシェーダーリソースビュー作成
 	dxInitialize.device->CreateShaderResourceView(texBuff, &srvDesc, srvHandle);
@@ -527,9 +569,11 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 
 
 	//変数初期化場所
-	float color_Red = 0.1f;
-	float color_Green = 0.25f;
-	float color_Blue = 0.5f;
+	bool color_Red = false;
+	bool color_Green =false;
+	bool color_Blue = false;
+
+	int color_lv = 0;
 
 	//ゲームループ
 	while (true)
@@ -552,10 +596,53 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 		//キーボード情報の取得開始
 		_input.InputUpdate();
 
-		//if (constMapMaterial->color.y < 1.0f)
-		//{
-		//	constMapMaterial->color.y += 0.01f;
-		//}
+		switch (color_lv)
+		{
+		case 0:
+			color_Red = true;
+			color_Green = false;
+			color_Blue = false;
+			break;
+		case 1:
+			color_Red = false;
+			color_Green =true;
+			color_Blue = false;
+			break;
+		case 2:
+			color_Red = false;
+			color_Green = false;
+			color_Blue = true;
+			break;
+		}
+
+		if (color_Red)
+		{
+			constMapMaterial->color.x += 0.02f;
+			constMapMaterial->color.z -= 0.02f;
+			if (constMapMaterial->color.x > 1.0f)
+			{
+				color_lv = 1;
+			}
+		}
+		if (color_Green)
+		{
+			constMapMaterial->color.y += 0.02f;
+			constMapMaterial->color.x -= 0.02f;
+			if (constMapMaterial->color.y > 1.0f)
+			{
+				color_lv = 2;
+			}
+		}
+		if (color_Blue)
+		{
+			constMapMaterial->color.z += 0.02f;
+			constMapMaterial->color.y -= 0.02f;
+			if (constMapMaterial->color.z > 1.0f)
+			{
+				color_lv = 0;
+			}
+		}
+
 
 		//バックバッファの番号を取得(2つなので0番か1番)
 		UINT bbIndex = dxInitialize.swapChain->GetCurrentBackBufferIndex();
@@ -574,7 +661,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 		dxInitialize.commandList->OMSetRenderTargets(1, &rtvHandle, false, nullptr);
 
 		//3. 画面クリア
-		FLOAT clearColor[] = { color_Red,color_Green,color_Blue,0.0f };	//色の指定はRGBAの0.0f～1.0f
+		FLOAT clearColor[] = { 0.1f,0.25f,0.5f,0.0f };	//色の指定はRGBAの0.0f～1.0f
 		
 		dxInitialize.commandList->ClearRenderTargetView(rtvHandle, clearColor, 0, nullptr);
 	#pragma region 描画コマンド
