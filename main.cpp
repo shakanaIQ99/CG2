@@ -374,7 +374,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 	constMapMaterial->color = XMFLOAT4(1, 1, 1, 1);			//RGBAで半透明
 
 
-#pragma endregion 定数バッファ、カラー初期化 
+#pragma endregion 定数バッファ兼カラー初期化 
 	
 
 
