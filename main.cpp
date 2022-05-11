@@ -45,13 +45,6 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 		{+0.5f,+0.5f,0.0f},
 	};
 
-	//インデックスデータ
-	uint16_t indices[] =
-	{
-		0,1,2,//三角形1つ目
-		1,2,3,//三角形2つ目
-	};
-
 	//頂点データ全体のサイズ=頂点データ一つ分のサイズ*頂点データの要素数
 	UINT sizeVB = static_cast<UINT>(sizeof(XMFLOAT3) * _countof(vertices));
 
@@ -82,6 +75,42 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 	assert(SUCCEEDED(result));
 #pragma endregion 頂点バッファの確保
 
+#pragma region インデックスバッファの設定
+
+	//インデックスデータ
+	uint16_t indices[] =
+	{
+		0,1,2,//三角形1つ目
+		1,2,3,//三角形2つ目
+	};
+
+	//インデックスデータ全体のサイズ
+	UINT sizeIB = static_cast<UINT>(sizeof(uint16_t) * _countof(indices));
+
+	//リソース設定
+	resDesc.Dimension = D3D12_RESOURCE_DIMENSION_BUFFER;
+	resDesc.Width = sizeIB;	//インデックス情報が入るサイズ
+	resDesc.Height = 1;
+	resDesc.DepthOrArraySize = 1;
+	resDesc.MipLevels = 1;
+	resDesc.SampleDesc.Count = 1;
+	resDesc.Layout = D3D12_TEXTURE_LAYOUT_ROW_MAJOR;
+
+	//インデックスバッファの生成
+	ID3D12Resource* indexBuff = nullptr;
+	result = dxInitialize.device->CreateCommittedResource(
+		&heapProp,	//ヒープ設定
+		D3D12_HEAP_FLAG_NONE,
+		&resDesc,	//リソース設定
+		D3D12_RESOURCE_STATE_GENERIC_READ,
+		nullptr,
+		IID_PPV_ARGS(&indexBuff)
+	);
+
+
+
+#pragma endregion インデックスバッファの設定
+
 #pragma region 頂点バッファへのデータ転送
 	//GPU上のバッファに対応した仮想メモリ(メインメモリ上)を取得
 	XMFLOAT3* vertMap = nullptr;
@@ -97,6 +126,23 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 #pragma endregion 頂点バッファへのデータ転送
 
 
+#pragma region インデックスバッファへのデータ転送
+
+	uint16_t* indexMap = nullptr;
+	result = indexBuff->Map(0, nullptr, (void**)&indexMap);
+	//全インデックスに対して
+	for (int i = 0; i < _countof(indices); i++)
+	{
+		indexMap[i] = indices[i];	//インデックスをコピー
+	}
+	//マッピング解除
+
+	indexBuff->Unmap(0, nullptr);
+
+
+#pragma endregion インデックスバッファへのデータ転送
+
+
 #pragma region 頂点バッファビュー
 	//頂点バッファビューの作成
 	D3D12_VERTEX_BUFFER_VIEW vbView{};
@@ -108,6 +154,18 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 	vbView.StrideInBytes = sizeof(XMFLOAT3);
 
 #pragma endregion 頂点バッファビュー
+
+#pragma region インデックスバッファビュー
+
+	//インデックスバッファビューの作成
+	D3D12_INDEX_BUFFER_VIEW ibView{};
+	ibView.BufferLocation = indexBuff->GetGPUVirtualAddress();
+	ibView.Format = DXGI_FORMAT_R16_UINT;
+	ibView.SizeInBytes = sizeIB;
+
+
+
+#pragma endregion インデックスバッファビュー
 
 #pragma region	頂点シェーダファイルの読み込みとコンパイル
 
@@ -313,11 +371,11 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 	assert(SUCCEEDED(result));
 
 	//値を書き込むと自動的に転送される
-	constMapMaterial->color = XMFLOAT4(1, 0, 0, 0.5f);			//RGBAで半透明
+	constMapMaterial->color = XMFLOAT4(1, 1, 1, 1);			//RGBAで半透明
 
 
-#pragma endregion 定数バッファ
-
+#pragma endregion 定数バッファ、カラー初期化 
+	
 
 
 #pragma endregion	描画初期化処理
@@ -349,10 +407,10 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 		//キーボード情報の取得開始
 		_input.InputUpdate();
 
-		if (constMapMaterial->color.y < 1.0f)
-		{
-			constMapMaterial->color.y += 0.01f;
-		}
+		//if (constMapMaterial->color.y < 1.0f)
+		//{
+		//	constMapMaterial->color.y += 0.01f;
+		//}
 
 		//バックバッファの番号を取得(2つなので0番か1番)
 		UINT bbIndex = dxInitialize.swapChain->GetCurrentBackBufferIndex();
@@ -412,8 +470,11 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 		//定数バッファビュー(CBV)の設定コマンド
 		dxInitialize.commandList->SetGraphicsRootConstantBufferView(0, constBuffMaterial->GetGPUVirtualAddress());
 
+		//インデックスバッファビューの設定コマンド
+		dxInitialize.commandList->IASetIndexBuffer(&ibView);
+
 		//描画コマンド
-		dxInitialize.commandList->DrawInstanced(6, 1, 0, 0);	//全ての頂点を使って描画
+		dxInitialize.commandList->DrawIndexedInstanced(_countof(indices), 1, 0, 0,0);	//全ての頂点を使って描画
 
 		//--------------4.描画コマンド　ここまで---------------//
 	#pragma endregion 描画コマンド
