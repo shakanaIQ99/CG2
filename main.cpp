@@ -617,8 +617,8 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 
 		if (color_Red)
 		{
-			constMapMaterial->color.x += 0.02f;
-			constMapMaterial->color.z -= 0.02f;
+			constMapMaterial->color.x += 0.04f;
+			constMapMaterial->color.z -= 0.04f;
 			if (constMapMaterial->color.x > 1.0f)
 			{
 				color_lv = 1;
@@ -626,8 +626,8 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 		}
 		if (color_Green)
 		{
-			constMapMaterial->color.y += 0.02f;
-			constMapMaterial->color.x -= 0.02f;
+			constMapMaterial->color.y += 0.04f;
+			constMapMaterial->color.x -= 0.04f;
 			if (constMapMaterial->color.y > 1.0f)
 			{
 				color_lv = 2;
@@ -635,8 +635,8 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 		}
 		if (color_Blue)
 		{
-			constMapMaterial->color.z += 0.02f;
-			constMapMaterial->color.y -= 0.02f;
+			constMapMaterial->color.z += 0.04f;
+			constMapMaterial->color.y -= 0.04f;
 			if (constMapMaterial->color.z > 1.0f)
 			{
 				color_lv = 0;
