@@ -175,6 +175,9 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 		//SRVヒープの先頭にあるSRVをルートパラメータ1番に設定
 		dxInitialize.commandList->SetGraphicsRootDescriptorTable(1, srvGpuHandle);
 
+		//定数バッファビュー(CBV)の設定コマンド
+		dxInitialize.commandList->SetGraphicsRootConstantBufferView(2, dxInitialize.constBuffTransform->GetGPUVirtualAddress());
+
 		//インデックスバッファビューの設定コマンド
 		dxInitialize.commandList->IASetIndexBuffer(&dxInitialize.ibView);
 

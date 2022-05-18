@@ -27,11 +27,11 @@ struct Vertex
 //頂点データ
 static Vertex vertices[] =
 {
-	//x      y     z     u    v
-	{{-0.4f,-0.7f,0.0f},{0.0f,1.0f}},	//左下
-	{{-0.4f,+0.7f,0.0f},{0.0f,0.0f}},	//左上
-	{{+0.4f,-0.7f,0.0f},{1.0f,1.0f}},	//右下
-	{{+0.4f,+0.7f,0.0f},{1.0f,0.0f}},	//右上
+	//x      y     z			 u    v
+	{{  0.0f,	100.0f,	0.0f},	{0.0f,1.0f}},	//左下
+	{{  0.0f,	  0.0f,	0.0f},	{0.0f,0.0f}},	//左上
+	{{100.0f,	100.0f,	0.0f},	{1.0f,1.0f}},	//右下
+	{{100.0f,	  0.0f,	0.0f},	{1.0f,0.0f}},	//右上
 };
 
 //インデックスデータ
@@ -51,6 +51,11 @@ static D3D12_INPUT_ELEMENT_DESC inputLayout[] = {
 static struct ConstBufferDataMaterial
 {
 	XMFLOAT4 color;
+};
+
+static struct ConstBufferDataTransform
+{
+	XMMATRIX mat;
 };
 
 static HRESULT result;
@@ -136,7 +141,7 @@ public:
 	D3D12_DESCRIPTOR_RANGE descriptorRange{};
 
 	//ルートパラメータの設定
-	D3D12_ROOT_PARAMETER rootParams[2] = {};
+	D3D12_ROOT_PARAMETER rootParams[3] = {};
 
 	//テクスチャサンプラーの設定
 	D3D12_STATIC_SAMPLER_DESC samplerDesc{};
@@ -162,6 +167,10 @@ public:
 	ID3D12Resource* constBuffMaterial = nullptr;
 	//定数バッファのマッピング
 	ConstBufferDataMaterial* constMapMaterial = nullptr;
+
+	ID3D12Resource* constBuffTransform = nullptr;
+	ConstBufferDataTransform* constMapTransform = nullptr;
+
 #pragma endregion 定数バッファ
 
 #pragma region 画像イメージデータ
@@ -216,7 +225,9 @@ private:
 
 	void GraphicsPipeLine();
 
-	void ConstBuffer();
+	void ConstBufferMaterial();
+
+	void ConstBufferTransform();
 
 	void TextureImageData();
 
