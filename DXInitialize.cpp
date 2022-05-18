@@ -596,6 +596,15 @@ void DXInitialize::ConstBufferTransform()
 
 	constMapTransform->mat.r[3].m128_f32[0] = -1.0f;
 	constMapTransform->mat.r[3].m128_f32[1] = 1.0f;
+
+	XMMATRIX matProjection = XMMatrixPerspectiveFovLH
+	(XMConvertToRadians(45.0f),
+		(float)window_width / window_height,
+		0.1f, 1000.0f
+
+	);
+
+	constMapTransform->mat = matProjection;
 }
 
 void DXInitialize::ShaderResourceView()
