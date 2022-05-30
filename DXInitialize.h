@@ -15,6 +15,8 @@ using namespace DirectX;
 	
 #include <DirectXTex.h>
 
+//#include"ViewProjection.h"
+
 //頂点データ構造体
 
 struct Vertex
@@ -24,14 +26,19 @@ struct Vertex
 };
 
 
+
+
+
+
+
 //頂点データ
 static Vertex vertices[] =
 {
 	//x			  y     z		 u    v
-	{{-50.0f,   -50.0f,	50.0f},	{0.0f,1.0f}},	//左下
-	{{-50.0f,	 50.0f,	50.0f},	{0.0f,0.0f}},	//左上
-	{{ 50.0f,	-50.0f,	50.0f},	{1.0f,1.0f}},	//右下
-	{{ 50.0f,	 50.0f,	50.0f},	{1.0f,0.0f}},	//右上
+	{{-50.0f,   -50.0f,	0.0f},	{0.0f,1.0f}},	//左下
+	{{-50.0f,	 50.0f,	0.0f},	{0.0f,0.0f}},	//左上
+	{{ 50.0f,	-50.0f,	0.0f},	{1.0f,1.0f}},	//右下
+	{{ 50.0f,	 50.0f,	0.0f},	{1.0f,0.0f}},	//右上
 };
 
 //インデックスデータ
@@ -57,6 +64,7 @@ static struct ConstBufferDataTransform
 {
 	XMMATRIX mat;
 };
+
 
 static HRESULT result;
 
@@ -204,6 +212,12 @@ public:
 
 	//シェーダーリソースビュー設定
 	D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc{};	//設定構造体
+	XMMATRIX matProjection;
+	XMMATRIX matview;
+	XMFLOAT3 eye;
+	XMFLOAT3 target;
+	XMFLOAT3 up;
+
 
 public:
 	DXInitialize(HWND hwnd);

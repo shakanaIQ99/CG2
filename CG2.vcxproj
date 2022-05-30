@@ -146,6 +146,7 @@
     <ClCompile Include="Input.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="DXWindow.cpp" />
+    <ClCompile Include="ViewProjection.cpp" />
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="BasicPS.hlsl">
@@ -165,6 +166,7 @@
     <ClInclude Include="DXInitialize.h" />
     <ClInclude Include="DXWindow.h" />
     <ClInclude Include="Input.h" />
+    <ClInclude Include="ViewProjection.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Basic.hlsli" />

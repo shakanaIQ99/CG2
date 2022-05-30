@@ -39,6 +39,11 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 
 	int color_lv = 0;
 
+	float CC = 0.02f;
+
+	float angle = 0.0f;
+
+
 	//ゲームループ
 	while (true)
 	{
@@ -81,8 +86,8 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 
 		if (color_Red)
 		{
-			dxInitialize.constMapMaterial->color.x += 0.04f;
-			dxInitialize.constMapMaterial->color.z -= 0.04f;
+			dxInitialize.constMapMaterial->color.x +=CC;
+			dxInitialize.constMapMaterial->color.z -=CC;
 			if (dxInitialize.constMapMaterial->color.x > 1.0f)
 			{
 				color_lv = 1;
@@ -90,8 +95,8 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 		}
 		if (color_Green)
 		{
-			dxInitialize.constMapMaterial->color.y += 0.04f;
-			dxInitialize.constMapMaterial->color.x -= 0.04f;
+			dxInitialize.constMapMaterial->color.y +=CC;
+			dxInitialize.constMapMaterial->color.x -=CC;
 			if (dxInitialize.constMapMaterial->color.y > 1.0f)
 			{
 				color_lv = 2;
@@ -99,14 +104,35 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 		}
 		if (color_Blue)
 		{
-			dxInitialize.constMapMaterial->color.z += 0.04f;
-			dxInitialize.constMapMaterial->color.y -= 0.04f;
+			dxInitialize.constMapMaterial->color.z += CC;
+			dxInitialize.constMapMaterial->color.y -= CC;
 			if (dxInitialize.constMapMaterial->color.z > 1.0f)
 			{
 				color_lv = 0;
 			}
 		}
 
+
+		if (_input.GetKey(DIK_UP))
+		{
+			CC += 0.0002f;
+		}
+		if (_input.GetKey(DIK_DOWN))
+		{
+			CC -= 0.0002f;
+		}
+
+		if (_input.GetKey(DIK_D) || _input.GetKey(DIK_A))
+		{
+			if (_input.GetKey(DIK_D)) { angle += XMConvertToRadians(20.0f); }
+			if (_input.GetKey(DIK_A)) { angle -= XMConvertToRadians(2.0f); }
+
+			dxInitialize.eye.x = -100 * sinf(angle);
+			dxInitialize.eye.z = -100 * cosf(angle);
+			dxInitialize.matview = XMMatrixLookAtLH(XMLoadFloat3(&dxInitialize.eye), XMLoadFloat3(&dxInitialize.target), XMLoadFloat3(&dxInitialize.up));
+
+		}
+		dxInitialize.constMapTransform->mat = dxInitialize.matview * dxInitialize.matProjection;
 
 		//バックバッファの番号を取得(2つなので0番か1番)
 		UINT bbIndex = dxInitialize.swapChain->GetCurrentBackBufferIndex();

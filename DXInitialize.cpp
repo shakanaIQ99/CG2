@@ -453,7 +453,7 @@ void DXInitialize::TextureImageData()
 {
 	//WICテクスチャのロード
 	result = LoadFromWICFile(
-		L"Resources/genba_hako.png",
+		L"Resources/genba_hako_320x320.png",
 		WIC_FLAGS_NONE,
 		&metadata, scratchImg
 	);
@@ -597,14 +597,19 @@ void DXInitialize::ConstBufferTransform()
 	constMapTransform->mat.r[3].m128_f32[0] = -1.0f;
 	constMapTransform->mat.r[3].m128_f32[1] = 1.0f;
 
-	XMMATRIX matProjection = XMMatrixPerspectiveFovLH
+	matProjection = XMMatrixPerspectiveFovLH
 	(XMConvertToRadians(45.0f),
 		(float)window_width / window_height,
 		0.1f, 1000.0f
 
 	);
 
-	constMapTransform->mat = matProjection;
+	eye={ 0, 0, -100 };
+	target={ 0, 0, 0 };
+	up = { 0, 1, 0 };
+	matview = XMMatrixLookAtLH(XMLoadFloat3(&eye), XMLoadFloat3(&target), XMLoadFloat3(&up));
+
+	constMapTransform->mat = matview*matProjection;
 }
 
 void DXInitialize::ShaderResourceView()
