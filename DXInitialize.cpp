@@ -446,7 +446,7 @@ void DXInitialize::ConstBufferMaterial()
 	assert(SUCCEEDED(result));
 
 	//’l‚ð‘‚«ž‚Þ‚ÆŽ©“®“I‚É“]‘—‚³‚ê‚é
-	constMapMaterial->color = XMFLOAT4(1, 0, 0, 1);			//RGBA‚Å”¼“§–¾
+	constMapMaterial->color = Vector4(1, 0, 0, 1);			//RGBA‚Å”¼“§–¾
 }
 
 void DXInitialize::TextureImageData()
