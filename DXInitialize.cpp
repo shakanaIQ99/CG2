@@ -446,14 +446,14 @@ void DXInitialize::ConstBufferMaterial()
 	assert(SUCCEEDED(result));
 
 	//値を書き込むと自動的に転送される
-	constMapMaterial->color = Vector4(1, 0, 0, 1);			//RGBAで半透明
+	constMapMaterial->color = XMFLOAT4(1, 0, 0, 1);			//RGBAで半透明
 }
 
 void DXInitialize::TextureImageData()
 {
 	//WICテクスチャのロード
 	result = LoadFromWICFile(
-		L"Resources/genba_hako_320x320.png",
+		L"Resources/genba.png",
 		WIC_FLAGS_NONE,
 		&metadata, scratchImg
 	);
@@ -609,7 +609,7 @@ void DXInitialize::ConstBufferTransform()
 	up = { 0, 1, 0 };
 	matview = XMMatrixLookAtLH(XMLoadFloat3(&eye), XMLoadFloat3(&target), XMLoadFloat3(&up));
 
-	constMapTransform->mat = matview*matProjection;
+	//constMapTransform->mat = matWorld * matview * matProjection;
 }
 
 void DXInitialize::ShaderResourceView()

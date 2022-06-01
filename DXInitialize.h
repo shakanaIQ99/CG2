@@ -15,18 +15,14 @@ using namespace DirectX;
 	
 #include <DirectXTex.h>
 
-#include"Vector3.h"
-#include"Vector2.h"
-#include"Vector4.h"
-
 //#include"ViewProjection.h"
 
 //頂点データ構造体
 
 struct Vertex
 {
-	Vector3 pos;	//xyz座標
-	Vector2 uv;	//uv座標
+	XMFLOAT3 pos;	//xyz座標
+	XMFLOAT2 uv;	//uv座標
 };
 
 
@@ -61,7 +57,7 @@ static D3D12_INPUT_ELEMENT_DESC inputLayout[] = {
 //定数バッファ用データ構造体(マテリアル)
 static struct ConstBufferDataMaterial
 {
-	Vector4 color;
+	XMFLOAT4 color;
 };
 
 static struct ConstBufferDataTransform

@@ -6,7 +6,7 @@
 
 #include <DirectXTex.h>
 
-
+#include"Vector3.h"
 
 //Windowsアプリでのエントリーポイント(main関数)
 int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
@@ -43,6 +43,14 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 
 	float angle = 0.0f;
 
+	Vector3 position = Vector3(0.0f, 0.0f, 0.0f);
+	Vector3 scale = Vector3(1, 1, 1);
+	Vector3 rotation = Vector3(0, 0, 0);
+
+	XMMATRIX matWorld;
+	XMMATRIX matScale;
+	XMMATRIX matRot;
+	XMMATRIX matTrans;
 
 	//ゲームループ
 	while (true)
@@ -84,33 +92,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 			break;
 		}
 
-		if (color_Red)
-		{
-			dxInitialize.constMapMaterial->color.x +=CC;
-			dxInitialize.constMapMaterial->color.z -=CC;
-			if (dxInitialize.constMapMaterial->color.x > 1.0f)
-			{
-				color_lv = 1;
-			}
-		}
-		if (color_Green)
-		{
-			dxInitialize.constMapMaterial->color.y +=CC;
-			dxInitialize.constMapMaterial->color.x -=CC;
-			if (dxInitialize.constMapMaterial->color.y > 1.0f)
-			{
-				color_lv = 2;
-			}
-		}
-		if (color_Blue)
-		{
-			dxInitialize.constMapMaterial->color.z += CC;
-			dxInitialize.constMapMaterial->color.y -= CC;
-			if (dxInitialize.constMapMaterial->color.z > 1.0f)
-			{
-				color_lv = 0;
-			}
-		}
+		
 
 
 		if (_input.GetKey(DIK_UP))
@@ -122,17 +104,74 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 			CC -= 0.0002f;
 		}
 
+		
+		if (_input.GetKey(DIK_UP)) { position.z += 1.0f; }
+		if (_input.GetKey(DIK_DOWN)) { position.z -= 1.0f; }
+		if (_input.GetKey(DIK_RIGHT)) { position.x += 1.0f; }
+		if (_input.GetKey(DIK_LEFT)) { position.x -= 1.0f; }
+		if (_input.GetKey(DIK_Z)) {  }
+		if (_input.GetKey(DIK_X)) {  }
+		if (_input.GetKey(DIK_Y)) {  }
+		if (!_input.GetKey(DIK_SPACE))
+		{
+			if (color_Red)
+			{
+				dxInitialize.constMapMaterial->color.x += CC;
+				dxInitialize.constMapMaterial->color.z -= CC;
+				if (dxInitialize.constMapMaterial->color.x > 1.0f)
+				{
+					color_lv = 1;
+				}
+			}
+			if (color_Green)
+			{
+				dxInitialize.constMapMaterial->color.y += CC;
+				dxInitialize.constMapMaterial->color.x -= CC;
+				if (dxInitialize.constMapMaterial->color.y > 1.0f)
+				{
+					color_lv = 2;
+				}
+			}
+			if (color_Blue)
+			{
+				dxInitialize.constMapMaterial->color.z += CC;
+				dxInitialize.constMapMaterial->color.y -= CC;
+				if (dxInitialize.constMapMaterial->color.z > 1.0f)
+				{
+					color_lv = 0;
+				}
+			}
+			rotation.z += 0.0f;
+			rotation.x += 0.0f;
+			rotation.y += 0.0f;
+		}
+
+		matWorld = XMMatrixIdentity();
+		matRot = XMMatrixIdentity();
+		matRot *= XMMatrixRotationZ(XMConvertToRadians(rotation.z));
+		matRot *= XMMatrixRotationX(XMConvertToRadians(rotation.x));
+		matRot *= XMMatrixRotationY(XMConvertToRadians(rotation.y));
+		matScale = XMMatrixScaling(scale.x, scale.y, scale.z);
+		matTrans = XMMatrixTranslation(position.x, position.y, position.z);
+		
+		matWorld *= matScale;
+		matWorld *= matRot;
+		matWorld *= matTrans;
+		
+		
+
+
 		if (_input.GetKey(DIK_D) || _input.GetKey(DIK_A))
 		{
 			if (_input.GetKey(DIK_D)) { angle += XMConvertToRadians(20.0f); }
-			if (_input.GetKey(DIK_A)) { angle -= XMConvertToRadians(2.0f); }
+			if (_input.GetKey(DIK_A)) { angle -= XMConvertToRadians(20.0f); }
 
 			dxInitialize.eye.x = -100 * sinf(angle);
 			dxInitialize.eye.z = -100 * cosf(angle);
 			dxInitialize.matview = XMMatrixLookAtLH(XMLoadFloat3(&dxInitialize.eye), XMLoadFloat3(&dxInitialize.target), XMLoadFloat3(&dxInitialize.up));
 
 		}
-		dxInitialize.constMapTransform->mat = dxInitialize.matview * dxInitialize.matProjection;
+		dxInitialize.constMapTransform->mat = matWorld * dxInitialize.matview * dxInitialize.matProjection;
 
 		//バックバッファの番号を取得(2つなので0番か1番)
 		UINT bbIndex = dxInitialize.swapChain->GetCurrentBackBufferIndex();
