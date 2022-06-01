@@ -123,6 +123,8 @@ DXInitialize::DXInitialize(HWND hwnd)
 	}
 #pragma endregion	レンダーターゲットビュー
 
+	DepthInitilize();
+
 	fence = nullptr;
 	fenceVal = 0;
 
@@ -453,7 +455,7 @@ void DXInitialize::TextureImageData()
 {
 	//WICテクスチャのロード
 	result = LoadFromWICFile(
-		L"Resources/genba.png",
+		L"Resources/genba.jpg",
 		WIC_FLAGS_NONE,
 		&metadata, scratchImg
 	);
@@ -604,7 +606,7 @@ void DXInitialize::ConstBufferTransform()
 
 	);
 
-	eye={ 0, 0, -100 };
+	eye={ 0, 0, -50 };
 	target={ 0, 0, 0 };
 	up = { 0, 1, 0 };
 	matview = XMMatrixLookAtLH(XMLoadFloat3(&eye), XMLoadFloat3(&target), XMLoadFloat3(&up));
@@ -622,6 +624,48 @@ void DXInitialize::ShaderResourceView()
 
 	//ハンドルの指す位置にシェーダーリソースビュー作成
 	device->CreateShaderResourceView(texBuff, &srvDesc, srvHandle);
+}
+
+void DXInitialize::DepthInitilize()
+{
+	depthResourceDesc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
+	depthResourceDesc.Width = window_width;
+	depthResourceDesc.Height = window_height;
+	depthResourceDesc.DepthOrArraySize = 1;
+	depthResourceDesc.Format = DXGI_FORMAT_D32_FLOAT;
+	depthResourceDesc.SampleDesc.Count = 1;
+	depthResourceDesc.Flags = D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL;
+
+	//ヒーププロパティ
+	depthHeapProp.Type = D3D12_HEAP_TYPE_DEFAULT;
+
+	//深度値のクリア設定
+	depthClearValue.DepthStencil.Depth = 1.0f;
+	depthClearValue.Format = DXGI_FORMAT_D32_FLOAT;
+
+	result = device->CreateCommittedResource(
+		&depthHeapProp,
+		D3D12_HEAP_FLAG_NONE,
+		&depthResourceDesc,
+		D3D12_RESOURCE_STATE_DEPTH_WRITE,
+		&depthClearValue,
+		IID_PPV_ARGS(&depthBuff)
+	);
+
+	dsvHeapDesc.NumDescriptors = 1;
+	dsvHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_DSV;
+	result = device->CreateDescriptorHeap(&dsvHeapDesc, IID_PPV_ARGS(&dsvHeap));
+	dsvDesc.Format = DXGI_FORMAT_D32_FLOAT;
+	dsvDesc.ViewDimension = D3D12_DSV_DIMENSION_TEXTURE2D;
+	device->CreateDepthStencilView(
+		depthBuff,
+		&dsvDesc,
+		dsvHeap->GetCPUDescriptorHandleForHeapStart()
+	);
+	pipelineDesc.DepthStencilState.DepthEnable = true;
+	pipelineDesc.DepthStencilState.DepthWriteMask = D3D12_DEPTH_WRITE_MASK_ALL;
+	pipelineDesc.DepthStencilState.DepthFunc = D3D12_COMPARISON_FUNC_LESS;
+	pipelineDesc.DSVFormat = DXGI_FORMAT_D32_FLOAT;
 }
 
 

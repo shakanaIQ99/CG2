@@ -34,18 +34,60 @@ struct Vertex
 //頂点データ
 static Vertex vertices[] =
 {
-	//x			  y     z		 u    v
-	{{-50.0f,   -50.0f,	0.0f},	{0.0f,1.0f}},	//左下
-	{{-50.0f,	 50.0f,	0.0f},	{0.0f,0.0f}},	//左上
-	{{ 50.0f,	-50.0f,	0.0f},	{1.0f,1.0f}},	//右下
-	{{ 50.0f,	 50.0f,	0.0f},	{1.0f,0.0f}},	//右上
+	//x		 y     z	  u    v
+	//前
+	{{-9.4f,-3.3f,-15.0f},{0.0f,1.0f}},	//左下
+	{{-9.4f, 3.3f,-15.0f},{0.0f,0.0f}},	//左上
+	{{ 9.4f,-3.3f,-15.0f},{1.0f,1.0f}},	//右下
+	{{ 9.4f, 3.3f,-15.0f},{1.0f,0.0f}},	//右上
+	//後
+	{{-9.4f,-3.3f, 15.0f},{0.0f,1.0f}},	//左下
+	{{-9.4f, 3.3f, 15.0f},{0.0f,0.0f}},	//左上
+	{{ 9.4f,-3.3f, 15.0f},{1.0f,1.0f}},	//右下
+	{{ 9.4f, 3.3f, 15.0f},{1.0f,0.0f}},	//右上
+	//左
+	{{-9.4f,-3.3f,-15.0f},{0.0f,1.0f}},	//左下
+	{{-9.4f, 3.3f,-15.0f},{0.0f,0.0f}},	//左上
+	{{-9.4f,-3.3f, 15.0f},{1.0f,1.0f}},	//右下
+	{{-9.4f, 3.3f, 15.0f},{1.0f,0.0f}},	//右上
+	//右
+	{{ 9.4f,-3.3f, 15.0f},{0.0f,1.0f}},	//左下
+	{{ 9.4f, 3.3f, 15.0f},{0.0f,0.0f}},	//左上
+	{{ 9.4f,-3.3f,-15.0f},{1.0f,1.0f}},	//右下
+	{{ 9.4f, 3.3f,-15.0f},{1.0f,0.0f}},	//右上
+	//下
+	{{-9.4f,-3.3f,-15.0f},{0.0f,1.0f}},	//左下
+	{{ 9.4f,-3.3f,-15.0f},{0.0f,0.0f}},	//左上
+	{{-9.4f,-3.3f, 15.0f},{1.0f,1.0f}},	//右下
+	{{ 9.4f,-3.3f, 15.0f},{1.0f,0.0f}},	//右上
+	//上
+	{{-9.4f, 3.3f,-15.0f},{0.0f,1.0f}},	//左下
+	{{ 9.4f, 3.3f,-15.0f},{0.0f,0.0f}},	//左上
+	{{-9.4f, 3.3f, 15.0f},{1.0f,1.0f}},	//右下
+	{{ 9.4f, 3.3f, 15.0f},{1.0f,0.0f}},	//右上
 };
 
 //インデックスデータ
 static unsigned short indices[] =
 {
+	//前
 	0,1,2,//三角形1つ目
 	1,2,3,//三角形2つ目
+	//後
+	4,5,6,//三角形3つ目
+	5,6,7,//三角形4つ目
+	////左
+	8,9,10,//三角形5つ目
+	9,10,11,//三角形6つ目
+	//右
+	12,13,14,
+	13,14,15,
+	////下
+	16,17,18,
+	17,18,19,
+	////上
+	20,21,22,
+	21,22,23,
 };
 
 //頂点レイアウト
@@ -104,6 +146,15 @@ public:
 	D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle;
 	//レンダーターゲットビューの設定
 	D3D12_RENDER_TARGET_VIEW_DESC rtvDesc{};
+
+	//深度バッファリソース
+	D3D12_RESOURCE_DESC depthResourceDesc{};
+	D3D12_HEAP_PROPERTIES depthHeapProp{};
+	D3D12_CLEAR_VALUE depthClearValue{};
+	ID3D12Resource* depthBuff = nullptr;
+	D3D12_DESCRIPTOR_HEAP_DESC dsvHeapDesc{};
+	ID3D12DescriptorHeap* dsvHeap = nullptr;
+	D3D12_DEPTH_STENCIL_VIEW_DESC dsvDesc = {};
 
 	//フェンスの生成
 	ID3D12Fence* fence;
@@ -222,9 +273,15 @@ public:
 public:
 	DXInitialize(HWND hwnd);
 
+
+
 	void DxDrawIni();
 
 private:
+
+	void DepthInitilize();
+
+
 	void VertexBufferInitialize();
 	void IndexBufferInitialize();
 

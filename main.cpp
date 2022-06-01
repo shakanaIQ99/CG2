@@ -110,8 +110,8 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 		if (_input.GetKey(DIK_RIGHT)) { position.x += 1.0f; }
 		if (_input.GetKey(DIK_LEFT)) { position.x -= 1.0f; }
 		if (_input.GetKey(DIK_Z)) {  }
-		if (_input.GetKey(DIK_X)) {  }
-		if (_input.GetKey(DIK_Y)) {  }
+		if (_input.GetKey(DIK_X)) { rotation.x += 1.0f; }
+		if (_input.GetKey(DIK_Y)) { rotation.y += 1.0f; }
 		if (!_input.GetKey(DIK_SPACE))
 		{
 			if (color_Red)
@@ -141,9 +141,9 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 					color_lv = 0;
 				}
 			}
-			rotation.z += 0.0f;
-			rotation.x += 0.0f;
-			rotation.y += 0.0f;
+			rotation.z += 4.0f;
+			
+			
 		}
 
 		matWorld = XMMatrixIdentity();
@@ -163,11 +163,11 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 
 		if (_input.GetKey(DIK_D) || _input.GetKey(DIK_A))
 		{
-			if (_input.GetKey(DIK_D)) { angle += XMConvertToRadians(20.0f); }
-			if (_input.GetKey(DIK_A)) { angle -= XMConvertToRadians(20.0f); }
+			if (_input.GetKey(DIK_D)) { angle += XMConvertToRadians(1.0f); }
+			if (_input.GetKey(DIK_A)) { angle -= XMConvertToRadians(1.0f); }
 
-			dxInitialize.eye.x = -100 * sinf(angle);
-			dxInitialize.eye.z = -100 * cosf(angle);
+			dxInitialize.eye.x = -50 * sinf(angle);
+			dxInitialize.eye.z = -50 * cosf(angle);
 			dxInitialize.matview = XMMatrixLookAtLH(XMLoadFloat3(&dxInitialize.eye), XMLoadFloat3(&dxInitialize.target), XMLoadFloat3(&dxInitialize.up));
 
 		}
@@ -187,12 +187,14 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 		//レンダーターゲットビューのハンドルを取得
 		D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle = dxInitialize.rtvHeap->GetCPUDescriptorHandleForHeapStart();
 		rtvHandle.ptr += bbIndex * dxInitialize.device->GetDescriptorHandleIncrementSize(dxInitialize.rtvHeapDesc.Type);
-		dxInitialize.commandList->OMSetRenderTargets(1, &rtvHandle, false, nullptr);
+		D3D12_CPU_DESCRIPTOR_HANDLE dsvHandle = dxInitialize.dsvHeap->GetCPUDescriptorHandleForHeapStart();
+		dxInitialize.commandList->OMSetRenderTargets(1, &rtvHandle, false, &dsvHandle);
 
 		//3. 画面クリア
 		FLOAT clearColor[] = { 0.1f,0.25f,0.5f,0.0f };	//色の指定はRGBAの0.0f～1.0f
 		
 		dxInitialize.commandList->ClearRenderTargetView(rtvHandle, clearColor, 0, nullptr);
+		dxInitialize.commandList->ClearDepthStencilView(dsvHandle, D3D12_CLEAR_FLAG_DEPTH, 1.0f, 0, 0, nullptr);
 	#pragma region 描画コマンド
 		//--------------4.描画コマンド　ここから---------------//
 		
