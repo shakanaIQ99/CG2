@@ -287,6 +287,8 @@ private:
 	void VertexBufferInitialize();
 	void IndexBufferInitialize();
 
+	void housenn();
+
 	void VBufferTransfer();
 	void IBufferTransfer();
 
