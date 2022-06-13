@@ -447,36 +447,6 @@ void DXInitialize::GraphicsPipeLine()
 	assert(SUCCEEDED(result));
 }
 
-void DXInitialize::ConstBufferMaterial()
-{
-	cbHeapProp.Type = D3D12_HEAP_TYPE_UPLOAD;			//GPUへの転送用
-	//リソース設定
-	cbResourceDesc.Dimension = D3D12_RESOURCE_DIMENSION_BUFFER;
-	cbResourceDesc.Width = (sizeof(ConstBufferDataMaterial) + 0xff) & ~0Xff;	//256バイトアライメント
-	cbResourceDesc.Height = 1;
-	cbResourceDesc.DepthOrArraySize = 1;
-	cbResourceDesc.MipLevels = 1;
-	cbResourceDesc.SampleDesc.Count = 1;
-	cbResourceDesc.Layout = D3D12_TEXTURE_LAYOUT_ROW_MAJOR;
-
-	//定数バッファの生成
-	result = device->CreateCommittedResource(
-		&cbHeapProp,		//ヒープ設定
-		D3D12_HEAP_FLAG_NONE,
-		&cbResourceDesc,	//リソース設定
-		D3D12_RESOURCE_STATE_GENERIC_READ,
-		nullptr,
-		IID_PPV_ARGS(&constBuffMaterial)
-	);
-	assert(SUCCEEDED(result));
-
-	//定数バッファのマッピング
-	result = constBuffMaterial->Map(0, nullptr, (void**)&constMapMaterial);	//マッピング
-	assert(SUCCEEDED(result));
-
-	//値を書き込むと自動的に転送される
-	constMapMaterial->color = XMFLOAT4(1, 0, 0, 1);			//RGBAで半透明
-}
 
 void DXInitialize::TextureImageData()
 {
@@ -519,6 +489,7 @@ void DXInitialize::TextureImageData()
 }
 
 void DXInitialize::TextureBuffer()
+
 {
 	//ヒープ設定
 	textureHeapProp.Type = D3D12_HEAP_TYPE_CUSTOM;
@@ -588,7 +559,36 @@ void DXInitialize::DescriptorHeap()
 	//SRVヒープの先頭ハンドルを取得
 	srvHandle = srvHeap->GetCPUDescriptorHandleForHeapStart();
 }
+void DXInitialize::ConstBufferMaterial()
+{
+	cbHeapProp.Type = D3D12_HEAP_TYPE_UPLOAD;			//GPUへの転送用
+	//リソース設定
+	cbResourceDesc.Dimension = D3D12_RESOURCE_DIMENSION_BUFFER;
+	cbResourceDesc.Width = (sizeof(ConstBufferDataMaterial) + 0xff) & ~0Xff;	//256バイトアライメント
+	cbResourceDesc.Height = 1;
+	cbResourceDesc.DepthOrArraySize = 1;
+	cbResourceDesc.MipLevels = 1;
+	cbResourceDesc.SampleDesc.Count = 1;
+	cbResourceDesc.Layout = D3D12_TEXTURE_LAYOUT_ROW_MAJOR;
 
+	//定数バッファの生成
+	result = device->CreateCommittedResource(
+		&cbHeapProp,		//ヒープ設定
+		D3D12_HEAP_FLAG_NONE,
+		&cbResourceDesc,	//リソース設定
+		D3D12_RESOURCE_STATE_GENERIC_READ,
+		nullptr,
+		IID_PPV_ARGS(&constBuffMaterial)
+	);
+	assert(SUCCEEDED(result));
+
+	//定数バッファのマッピング
+	result = constBuffMaterial->Map(0, nullptr, (void**)&constMapMaterial);	//マッピング
+	assert(SUCCEEDED(result));
+
+	//値を書き込むと自動的に転送される
+	constMapMaterial->color = XMFLOAT4(1, 0, 0, 1);			//RGBAで半透明
+}
 void DXInitialize::ConstBufferTransform()
 {
 	cbHeapProp.Type = D3D12_HEAP_TYPE_UPLOAD;			//GPUへの転送用

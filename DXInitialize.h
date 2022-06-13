@@ -225,8 +225,8 @@ public:
 	//リソース設定
 	D3D12_RESOURCE_DESC cbResourceDesc{};
 
-	ID3D12Resource* constBuffMaterial = nullptr;
 	//定数バッファのマッピング
+	ID3D12Resource* constBuffMaterial = nullptr;
 	ConstBufferDataMaterial* constMapMaterial = nullptr;
 
 	ID3D12Resource* constBuffTransform = nullptr;
