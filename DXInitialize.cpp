@@ -136,6 +136,7 @@ void DXInitialize::DxDrawIni()
 {
 	VertexBufferInitialize();
 	IndexBufferInitialize();
+	housenn();
 	VBufferTransfer();
 	IBufferTransfer();
 	VBView();
@@ -205,7 +206,7 @@ void DXInitialize::IndexBufferInitialize()
 
 void DXInitialize::housenn()
 {
-	for (int i + 0; i < _countof(indices) / 3; i++)
+	for (int i = 0; i < _countof(indices) / 3; i++)
 	{
 		unsigned short index_zero = indices[i * 3 + 0];
 		unsigned short index_one = indices[i * 3 + 1];
