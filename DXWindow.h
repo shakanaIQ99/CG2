@@ -13,7 +13,8 @@ public:
 	HWND hwnd;
 	MSG msg{};		//メッセージ
 
-public:
 	DXWindow();
+	
+private:
 };
 

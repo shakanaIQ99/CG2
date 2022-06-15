@@ -1,17 +1,30 @@
 #include "DXInitialize.h"
 #include"DXWindow.h"
+
 using namespace DirectX;
 
 
-DXInitialize::DXInitialize(HWND hwnd)
+
+
+ID3D12Device* DXInitialize::Getdevice()
 {
-	device = nullptr;
-	dxgiFactory = nullptr;
-	swapChain = nullptr;
-	commandAllocator = nullptr;
-	commandList = nullptr;
-	commandQueue = nullptr;
-	rtvHeap = nullptr;
+	return device;
+}
+
+IDXGIFactory7* DXInitialize::GetdxgiFactory()
+{
+	return dxgiFactory;
+}
+
+IDXGISwapChain4* DXInitialize::GetswapChain()
+{
+	return swapChain;
+}
+
+void DXInitialize::Initialize(HWND hwnd)
+{
+
+	
 
 #pragma region	アダプタ
 	//DXGIファクトリーの生成
@@ -42,26 +55,7 @@ DXInitialize::DXInitialize(HWND hwnd)
 #pragma endregion アダプタ
 
 
-#pragma region	デバイス
-	//対応レベルの配列
-	D3D_FEATURE_LEVEL levels[] =
-	{
-		D3D_FEATURE_LEVEL_12_1,
-		D3D_FEATURE_LEVEL_12_0,
-		D3D_FEATURE_LEVEL_11_1,
-		D3D_FEATURE_LEVEL_11_0,
-	};
-	for (size_t i = 0; i < _countof(levels); i++)
-	{
-		//採用したアダプターでデバイスを生成
-		result = D3D12CreateDevice(tmpAdapter, levels[i], IID_PPV_ARGS(&device));
-		if (result == S_OK)
-		{
-			featureLevel = levels[i];
-			break;
-		}
-	}
-#pragma endregion	デバイス
+
 
 #pragma region コマンド
 
@@ -80,6 +74,9 @@ DXInitialize::DXInitialize(HWND hwnd)
 #pragma endregion	コマンド
 
 #pragma region	スワップチェーン
+
+
+
 	swapChainDesc.Width = 1280;
 	swapChainDesc.Height = 720;
 	swapChainDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;				//色情報の書式
@@ -114,7 +111,7 @@ DXInitialize::DXInitialize(HWND hwnd)
 		rtvHandle = rtvHeap->GetCPUDescriptorHandleForHeapStart();
 		//裏か表かでアドレスがずれる
 		rtvHandle.ptr += i * device->GetDescriptorHandleIncrementSize(rtvHeapDesc.Type);
-		
+
 		//シェーダーの計算結果をSRGBに変換して書き込む
 		rtvDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM_SRGB;
 		rtvDesc.ViewDimension = D3D12_RTV_DIMENSION_TEXTURE2D;
@@ -129,8 +126,52 @@ DXInitialize::DXInitialize(HWND hwnd)
 	fenceVal = 0;
 
 	result = device->CreateFence(fenceVal, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&fence));
-	
+
 }
+
+ID3D12CommandAllocator* DXInitialize::GetcommandAllocator()
+{
+	return  commandAllocator;
+}
+
+ID3D12GraphicsCommandList* DXInitialize::GetcommandList()
+{
+	return commandList;
+}
+
+DXInitialize::DXInitialize()
+{
+	device = nullptr;
+	dxgiFactory = nullptr;
+	swapChain = nullptr;
+	commandAllocator = nullptr;
+	commandList = nullptr;
+	commandQueue = nullptr;
+	rtvHeap = nullptr;
+
+#pragma region	デバイス
+	//対応レベルの配列
+	D3D_FEATURE_LEVEL levels[] =
+	{
+		D3D_FEATURE_LEVEL_12_1,
+		D3D_FEATURE_LEVEL_12_0,
+		D3D_FEATURE_LEVEL_11_1,
+		D3D_FEATURE_LEVEL_11_0,
+	};
+	for (size_t i = 0; i < _countof(levels); i++)
+	{
+		//採用したアダプターでデバイスを生成
+		result = D3D12CreateDevice(tmpAdapter, levels[i], IID_PPV_ARGS(&device));
+		if (result == S_OK)
+		{
+			featureLevel = levels[i];
+			break;
+		}
+	}
+#pragma endregion	デバイス
+
+}
+
 
 void DXInitialize::DxDrawIni()
 {
@@ -144,7 +185,9 @@ void DXInitialize::DxDrawIni()
 	VSFileReadCompile();
 	PSFileReadCompile();
 	GraphicsPipeLine();
+	ResouceConstBfferM();
 	ConstBufferMaterial();
+	//ResouceConstBfferT();
 	ConstBufferTransform();
 	TextureImageData();
 	TextureBuffer();
@@ -228,6 +271,24 @@ void DXInitialize::housenn()
 		XMStoreFloat3(&vertices[index_two].normal, normal);
 	}
 
+}
+
+ID3D12CommandQueue* DXInitialize::GetcommandQueue()
+{
+	return commandQueue;
+}
+
+ID3D12DescriptorHeap* DXInitialize::GetrtvHeap()
+{
+	return rtvHeap;
+}
+
+
+
+DXInitialize* DXInitialize::GetInstance()
+{
+	static DXInitialize instance;
+	return &instance;
 }
 
 void DXInitialize::VBufferTransfer()
@@ -559,7 +620,11 @@ void DXInitialize::DescriptorHeap()
 	//SRVヒープの先頭ハンドルを取得
 	srvHandle = srvHeap->GetCPUDescriptorHandleForHeapStart();
 }
-void DXInitialize::ConstBufferMaterial()
+
+
+
+
+void DXInitialize::ResouceConstBfferM()
 {
 	cbHeapProp.Type = D3D12_HEAP_TYPE_UPLOAD;			//GPUへの転送用
 	//リソース設定
@@ -571,6 +636,12 @@ void DXInitialize::ConstBufferMaterial()
 	cbResourceDesc.SampleDesc.Count = 1;
 	cbResourceDesc.Layout = D3D12_TEXTURE_LAYOUT_ROW_MAJOR;
 
+}
+
+
+void DXInitialize::ConstBufferMaterial()
+{
+	
 	//定数バッファの生成
 	result = device->CreateCommittedResource(
 		&cbHeapProp,		//ヒープ設定
@@ -589,43 +660,58 @@ void DXInitialize::ConstBufferMaterial()
 	//値を書き込むと自動的に転送される
 	constMapMaterial->color = XMFLOAT4(1, 0, 0, 1);			//RGBAで半透明
 }
+//void DXInitialize::ResouceConstBfferT()
+//{
+//	cbHeapProp.Type = D3D12_HEAP_TYPE_UPLOAD;			//GPUへの転送用
+//	//リソース設定
+//	cbResourceDesc.Dimension = D3D12_RESOURCE_DIMENSION_BUFFER;
+//	cbResourceDesc.Width = (sizeof(ConstBufferDataTransform) + 0xff) & ~0Xff;	//256バイトアライメント
+//	cbResourceDesc.Height = 1;
+//	cbResourceDesc.DepthOrArraySize = 1;
+//	cbResourceDesc.MipLevels = 1;
+//	cbResourceDesc.SampleDesc.Count = 1;
+//	cbResourceDesc.Layout = D3D12_TEXTURE_LAYOUT_ROW_MAJOR;
+//
+//}
+
+
+//void DXInitialize::CreateConstBufferT()
+//{
+//	ID3D12Resource* constBuffTransform = nullptr;
+//	ConstBufferDataTransform* constMapTransform = nullptr;
+//
+//	//定数バッファの生成
+//	result = device->CreateCommittedResource(
+//		&cbHeapProp,		//ヒープ設定
+//		D3D12_HEAP_FLAG_NONE,
+//		&cbResourceDesc,	//リソース設定
+//		D3D12_RESOURCE_STATE_GENERIC_READ,
+//		nullptr,
+//		IID_PPV_ARGS(&constBuffTransform)
+//	);
+//	assert(SUCCEEDED(result));
+//
+//
+//	//定数バッファのマッピング
+//	result = constBuffTransform->Map(0, nullptr, (void**)&constMapTransform);	//マッピング
+//	assert(SUCCEEDED(result));
+//
+//	//単位行列を代入
+//	constMapTransform->mat = XMMatrixIdentity();
+//
+//	constMapTransform->mat.r[0].m128_f32[0] = 2.0f / window_width;
+//	constMapTransform->mat.r[1].m128_f32[1] = -2.0f / window_height;
+//
+//	constMapTransform->mat.r[3].m128_f32[0] = -1.0f;
+//	constMapTransform->mat.r[3].m128_f32[1] = 1.0f;
+//
+//}
+
+
 void DXInitialize::ConstBufferTransform()
 {
-	cbHeapProp.Type = D3D12_HEAP_TYPE_UPLOAD;			//GPUへの転送用
-	//リソース設定
-	cbResourceDesc.Dimension = D3D12_RESOURCE_DIMENSION_BUFFER;
-	cbResourceDesc.Width = (sizeof(ConstBufferDataTransform) + 0xff) & ~0Xff;	//256バイトアライメント
-	cbResourceDesc.Height = 1;
-	cbResourceDesc.DepthOrArraySize = 1;
-	cbResourceDesc.MipLevels = 1;
-	cbResourceDesc.SampleDesc.Count = 1;
-	cbResourceDesc.Layout = D3D12_TEXTURE_LAYOUT_ROW_MAJOR;
-
-	//定数バッファの生成
-	result = device->CreateCommittedResource(
-		&cbHeapProp,		//ヒープ設定
-		D3D12_HEAP_FLAG_NONE,
-		&cbResourceDesc,	//リソース設定
-		D3D12_RESOURCE_STATE_GENERIC_READ,
-		nullptr,
-		IID_PPV_ARGS(&constBuffTransform)
-	);
-	assert(SUCCEEDED(result));
-
-
-	//定数バッファのマッピング
-	result = constBuffTransform->Map(0, nullptr, (void**)&constMapTransform);	//マッピング
-	assert(SUCCEEDED(result));
-
-	//単位行列を代入
-	constMapTransform->mat = XMMatrixIdentity();
-
-	constMapTransform->mat.r[0].m128_f32[0] = 2.0f / window_width;
-	constMapTransform->mat.r[1].m128_f32[1] = -2.0f / window_height;
-
-	constMapTransform->mat.r[3].m128_f32[0] = -1.0f;
-	constMapTransform->mat.r[3].m128_f32[1] = 1.0f;
-
+	//CreateConstBufferT();
+	
 	matProjection = XMMatrixPerspectiveFovLH
 	(XMConvertToRadians(45.0f),
 		(float)window_width / window_height,
@@ -640,6 +726,7 @@ void DXInitialize::ConstBufferTransform()
 
 	//constMapTransform->mat = matWorld * matview * matProjection;
 }
+
 
 void DXInitialize::ShaderResourceView()
 {

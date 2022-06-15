@@ -15,6 +15,8 @@ using namespace DirectX;
 	
 #include <DirectXTex.h>
 
+#include"DXWindow.h"
+
 //#include"ViewProjection.h"
 
 //頂点データ構造体
@@ -104,18 +106,22 @@ static struct ConstBufferDataMaterial
 	XMFLOAT4 color;
 };
 
-static struct ConstBufferDataTransform
-{
-	XMMATRIX mat;
-};
+//static struct ConstBufferDataTransform
+//{
+//	XMMATRIX mat;
+//};
 
 
 static HRESULT result;
 
 class DXInitialize
 {
-public:
+private:
 
+	
+
+public:
+	
 	ID3D12Device* device;
 	IDXGIFactory7* dxgiFactory;
 	IDXGISwapChain4* swapChain;
@@ -124,8 +130,8 @@ public:
 	ID3D12CommandQueue* commandQueue;
 	ID3D12DescriptorHeap* rtvHeap;
 	
-	DXGI_ADAPTER_DESC3 adapterDesc;
 
+	DXGI_ADAPTER_DESC3 adapterDesc;
 	//アダプターの列挙用
 	std::vector <IDXGIAdapter4*>adapters;
 	//ここに特定の名前を持つアダプターオブジェクトが入る
@@ -229,8 +235,7 @@ public:
 	ID3D12Resource* constBuffMaterial = nullptr;
 	ConstBufferDataMaterial* constMapMaterial = nullptr;
 
-	ID3D12Resource* constBuffTransform = nullptr;
-	ConstBufferDataTransform* constMapTransform = nullptr;
+	
 
 #pragma endregion 定数バッファ
 
@@ -273,11 +278,27 @@ public:
 
 
 public:
-	DXInitialize(HWND hwnd);
 
+	
 
+	DXInitialize();
+
+	
+	void Initialize(HWND hwnd);
 
 	void DxDrawIni();
+
+	ID3D12Device* Getdevice();
+	IDXGIFactory7* GetdxgiFactory();
+	IDXGISwapChain4* GetswapChain();
+	ID3D12CommandAllocator* GetcommandAllocator();
+	ID3D12GraphicsCommandList* GetcommandList();
+	ID3D12CommandQueue* GetcommandQueue();
+	ID3D12DescriptorHeap* GetrtvHeap();
+
+	static DXInitialize* GetInstance();
+
+	
 
 private:
 
@@ -299,6 +320,12 @@ private:
 	void PSFileReadCompile();
 
 	void GraphicsPipeLine();
+
+	void ResouceConstBfferM();
+
+	void ResouceConstBfferT();
+
+	void CreateConstBufferT();
 
 	void ConstBufferMaterial();
 

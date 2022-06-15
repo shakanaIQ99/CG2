@@ -3,7 +3,7 @@
 #include"DXInitialize.h"
 #include"Input.h"
 #include"DXWindow.h"
-
+#include"WorldTransform.h"
 #include <DirectXTex.h>
 
 #include"Vector3.h"
@@ -24,7 +24,8 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 #endif	
 	HRESULT result;
 	//DirectX初期化処理
-	DXInitialize dxInitialize(_window.hwnd);
+	DXInitialize dxInitialize;
+	dxInitialize.Initialize(_window.hwnd);
 	//入力関数
 	Input _input(_window.w, _window.hwnd);
 
@@ -43,14 +44,18 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 
 	float angle = 0.0f;
 
+	WorldTransform box;
+
+	box.Initialize();
+
 	Vector3 position = Vector3(0.0f, 0.0f, 0.0f);
 	Vector3 scale = Vector3(1, 1, 1);
 	Vector3 rotation = Vector3(0, 0, 0);
 
-	XMMATRIX matWorld;
-	XMMATRIX matScale;
-	XMMATRIX matRot;
-	XMMATRIX matTrans;
+	Matrix4 matWorld;
+	Matrix4 matScale;
+	Matrix4 matRot;
+	Matrix4 matTrans;
 
 	//ゲームループ
 	while (true)
@@ -146,17 +151,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 			
 		}
 
-		matWorld = XMMatrixIdentity();
-		matRot = XMMatrixIdentity();
-		matRot *= XMMatrixRotationZ(XMConvertToRadians(rotation.z));
-		matRot *= XMMatrixRotationX(XMConvertToRadians(rotation.x));
-		matRot *= XMMatrixRotationY(XMConvertToRadians(rotation.y));
-		matScale = XMMatrixScaling(scale.x, scale.y, scale.z);
-		matTrans = XMMatrixTranslation(position.x, position.y, position.z);
 		
-		matWorld *= matScale;
-		matWorld *= matRot;
-		matWorld *= matTrans;
 		
 		
 
@@ -171,30 +166,30 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 			dxInitialize.matview = XMMatrixLookAtLH(XMLoadFloat3(&dxInitialize.eye), XMLoadFloat3(&dxInitialize.target), XMLoadFloat3(&dxInitialize.up));
 
 		}
-		dxInitialize.constMapTransform->mat = matWorld * dxInitialize.matview * dxInitialize.matProjection;
+		box.UpdateMatrix();
 
 		//バックバッファの番号を取得(2つなので0番か1番)
-		UINT bbIndex = dxInitialize.swapChain->GetCurrentBackBufferIndex();
+		UINT bbIndex = dxInitialize.GetswapChain()->GetCurrentBackBufferIndex();
 
 		//1.リソースバリアで書き込み可能に変更
 		D3D12_RESOURCE_BARRIER barrierDesc{};
 		barrierDesc.Transition.pResource = dxInitialize.backBuffers[bbIndex];				//バックバッファを指定
 		barrierDesc.Transition.StateBefore = D3D12_RESOURCE_STATE_PRESENT;		//表示状態から
 		barrierDesc.Transition.StateAfter = D3D12_RESOURCE_STATE_RENDER_TARGET;	//描画状態へ
-		dxInitialize.commandList->ResourceBarrier(1, &barrierDesc);
+		dxInitialize.GetcommandList()->ResourceBarrier(1, &barrierDesc);
 
 		//2. 描画先の変更
 		//レンダーターゲットビューのハンドルを取得
-		D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle = dxInitialize.rtvHeap->GetCPUDescriptorHandleForHeapStart();
-		rtvHandle.ptr += bbIndex * dxInitialize.device->GetDescriptorHandleIncrementSize(dxInitialize.rtvHeapDesc.Type);
+		D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle = dxInitialize.GetrtvHeap()->GetCPUDescriptorHandleForHeapStart();
+		rtvHandle.ptr += bbIndex * dxInitialize.Getdevice()->GetDescriptorHandleIncrementSize(dxInitialize.rtvHeapDesc.Type);
 		D3D12_CPU_DESCRIPTOR_HANDLE dsvHandle = dxInitialize.dsvHeap->GetCPUDescriptorHandleForHeapStart();
-		dxInitialize.commandList->OMSetRenderTargets(1, &rtvHandle, false, &dsvHandle);
+		dxInitialize.GetcommandList()->OMSetRenderTargets(1, &rtvHandle, false, &dsvHandle);
 
 		//3. 画面クリア
 		FLOAT clearColor[] = { 0.1f,0.25f,0.5f,0.0f };	//色の指定はRGBAの0.0f～1.0f
 		
-		dxInitialize.commandList->ClearRenderTargetView(rtvHandle, clearColor, 0, nullptr);
-		dxInitialize.commandList->ClearDepthStencilView(dsvHandle, D3D12_CLEAR_FLAG_DEPTH, 1.0f, 0, 0, nullptr);
+		dxInitialize.GetcommandList()->ClearRenderTargetView(rtvHandle, clearColor, 0, nullptr);
+		dxInitialize.GetcommandList()->ClearDepthStencilView(dsvHandle, D3D12_CLEAR_FLAG_DEPTH, 1.0f, 0, 0, nullptr);
 	#pragma region 描画コマンド
 		//--------------4.描画コマンド　ここから---------------//
 		
@@ -208,7 +203,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 		viewport.MaxDepth = 1.0f;
 
 		//ビューポート設定コマンドを、コマンドリストに積む
-		dxInitialize.commandList->RSSetViewports(1, &viewport);
+		dxInitialize.GetcommandList()->RSSetViewports(1, &viewport);
 
 		//シザー矩形
 		D3D12_RECT scissorRect{};
@@ -218,59 +213,59 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 		scissorRect.bottom = scissorRect.top + window_height;		//切り抜き座標下
 		
 		//シザー矩形設定コマンドを、コマンドリストに積む
-		dxInitialize.commandList->RSSetScissorRects(1, &scissorRect);
+		dxInitialize.GetcommandList()->RSSetScissorRects(1, &scissorRect);
 
 		//パイプラインステートとルートシグネチャの設定コマンド
-		dxInitialize.commandList->SetPipelineState(dxInitialize.pipelineState);
-		dxInitialize.commandList->SetGraphicsRootSignature(dxInitialize.rootSignature);
+		dxInitialize.GetcommandList()->SetPipelineState(dxInitialize.pipelineState);
+		dxInitialize.GetcommandList()->SetGraphicsRootSignature(dxInitialize.rootSignature);
 		
 		//プリミティブ形状の設定コマンド
-		dxInitialize.commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);	//三角形リスト
+		dxInitialize.GetcommandList()->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);	//三角形リスト
 
 		//頂点バッファビューの設定コマンド
-		dxInitialize.commandList->IASetVertexBuffers(0, 1, &dxInitialize.vbView);
+		dxInitialize.GetcommandList()->IASetVertexBuffers(0, 1, &dxInitialize.vbView);
 
 		//定数バッファビュー(CBV)の設定コマンド
-		dxInitialize.commandList->SetGraphicsRootConstantBufferView(0, dxInitialize.constBuffMaterial->GetGPUVirtualAddress());
+		dxInitialize.GetcommandList()->SetGraphicsRootConstantBufferView(0, dxInitialize.constBuffMaterial->GetGPUVirtualAddress());
 
 		//SRVヒープの設定コマンド
-		dxInitialize.commandList->SetDescriptorHeaps(1, &dxInitialize.srvHeap);
+		dxInitialize.GetcommandList()->SetDescriptorHeaps(1, &dxInitialize.srvHeap);
 
 		//SRVヒープの先頭ハンドルを取得(SRVを指しているはず)
 		D3D12_GPU_DESCRIPTOR_HANDLE srvGpuHandle = dxInitialize.srvHeap->GetGPUDescriptorHandleForHeapStart();
 		
 		//SRVヒープの先頭にあるSRVをルートパラメータ1番に設定
-		dxInitialize.commandList->SetGraphicsRootDescriptorTable(1, srvGpuHandle);
+		dxInitialize.GetcommandList()->SetGraphicsRootDescriptorTable(1, srvGpuHandle);
 
 		//定数バッファビュー(CBV)の設定コマンド
-		dxInitialize.commandList->SetGraphicsRootConstantBufferView(2, dxInitialize.constBuffTransform->GetGPUVirtualAddress());
+		dxInitialize.GetcommandList()->SetGraphicsRootConstantBufferView(2, box.constBuffTransform->GetGPUVirtualAddress());
 
 		//インデックスバッファビューの設定コマンド
-		dxInitialize.commandList->IASetIndexBuffer(&dxInitialize.ibView);
+		dxInitialize.GetcommandList()->IASetIndexBuffer(&dxInitialize.ibView);
 
 		//描画コマンド
-		dxInitialize.commandList->DrawIndexedInstanced(_countof(indices), 1, 0, 0,0);	//全ての頂点を使って描画
+		dxInitialize.GetcommandList()->DrawIndexedInstanced(_countof(indices), 1, 0, 0,0);	//全ての頂点を使って描画
 
 		//--------------4.描画コマンド　ここまで---------------//
 	#pragma endregion 描画コマンド
 		//5. リソースバリアを戻す
 		barrierDesc.Transition.StateBefore = D3D12_RESOURCE_STATE_RENDER_TARGET;	//描画状態から
 		barrierDesc.Transition.StateAfter = D3D12_RESOURCE_STATE_PRESENT;			//表示状態へ
-		dxInitialize.commandList->ResourceBarrier(1, &barrierDesc);
+		dxInitialize.GetcommandList()->ResourceBarrier(1, &barrierDesc);
 
 		//命令のクローズ
-		result = dxInitialize.commandList->Close();
+		result = dxInitialize.GetcommandList()->Close();
 		assert(SUCCEEDED(result));
 		//コマンドリストの実行
-		ID3D12CommandList* commandLists[] = { dxInitialize.commandList };
-		dxInitialize.commandQueue->ExecuteCommandLists(1, commandLists);
+		ID3D12CommandList* commandLists[] = { dxInitialize.GetcommandList() };
+		dxInitialize.GetcommandQueue()->ExecuteCommandLists(1, commandLists);
 
 		//画面に表示するバッファをフリップ(裏表の入れ替え)
-		result = dxInitialize.swapChain->Present(1, 0);
+		result = dxInitialize.GetswapChain()->Present(1, 0);
 		assert(SUCCEEDED(result));
 
 		//コマンドの実行完了を待つ
-		dxInitialize.commandQueue->Signal(dxInitialize.fence, ++dxInitialize.fenceVal);
+		dxInitialize.GetcommandQueue()->Signal(dxInitialize.fence, ++dxInitialize.fenceVal);
 		if (dxInitialize.fence->GetCompletedValue() != dxInitialize.fenceVal)
 		{
 			HANDLE event = CreateEvent(nullptr, false, false, nullptr);
@@ -280,10 +275,10 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 		}
 
 		//キューをクリア
-		result = dxInitialize.commandAllocator->Reset();
+		result = dxInitialize.GetcommandAllocator()->Reset();
 		assert(SUCCEEDED(result));
 		//再びコマンドリストをためる準備
-		result = dxInitialize.commandList->Reset(dxInitialize.commandAllocator, nullptr);
+		result = dxInitialize.GetcommandList()->Reset(dxInitialize.GetcommandAllocator(), nullptr);
 		assert(SUCCEEDED(result));
 
 
