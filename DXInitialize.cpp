@@ -75,8 +75,6 @@ void DXInitialize::Initialize(HWND hwnd)
 
 #pragma region	スワップチェーン
 
-
-
 	swapChainDesc.Width = 1280;
 	swapChainDesc.Height = 720;
 	swapChainDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;				//色情報の書式
@@ -187,7 +185,7 @@ void DXInitialize::DxDrawIni()
 	GraphicsPipeLine();
 	ResouceConstBfferM();
 	ConstBufferMaterial();
-	//ResouceConstBfferT();
+	ResouceConstBfferT();
 	ConstBufferTransform();
 	TextureImageData();
 	TextureBuffer();
@@ -660,57 +658,54 @@ void DXInitialize::ConstBufferMaterial()
 	//値を書き込むと自動的に転送される
 	constMapMaterial->color = XMFLOAT4(1, 0, 0, 1);			//RGBAで半透明
 }
-//void DXInitialize::ResouceConstBfferT()
-//{
-//	cbHeapProp.Type = D3D12_HEAP_TYPE_UPLOAD;			//GPUへの転送用
-//	//リソース設定
-//	cbResourceDesc.Dimension = D3D12_RESOURCE_DIMENSION_BUFFER;
-//	cbResourceDesc.Width = (sizeof(ConstBufferDataTransform) + 0xff) & ~0Xff;	//256バイトアライメント
-//	cbResourceDesc.Height = 1;
-//	cbResourceDesc.DepthOrArraySize = 1;
-//	cbResourceDesc.MipLevels = 1;
-//	cbResourceDesc.SampleDesc.Count = 1;
-//	cbResourceDesc.Layout = D3D12_TEXTURE_LAYOUT_ROW_MAJOR;
-//
-//}
+void DXInitialize::ResouceConstBfferT()
+{
+	cbHeapProp.Type = D3D12_HEAP_TYPE_UPLOAD;			//GPUへの転送用
+	//リソース設定
+	cbResourceDesc.Dimension = D3D12_RESOURCE_DIMENSION_BUFFER;
+	cbResourceDesc.Width = (sizeof(ConstBufferDataTransform) + 0xff) & ~0Xff;	//256バイトアライメント
+	cbResourceDesc.Height = 1;
+	cbResourceDesc.DepthOrArraySize = 1;
+	cbResourceDesc.MipLevels = 1;
+	cbResourceDesc.SampleDesc.Count = 1;
+	cbResourceDesc.Layout = D3D12_TEXTURE_LAYOUT_ROW_MAJOR;
+
+}
 
 
-//void DXInitialize::CreateConstBufferT()
-//{
-//	ID3D12Resource* constBuffTransform = nullptr;
-//	ConstBufferDataTransform* constMapTransform = nullptr;
-//
-//	//定数バッファの生成
-//	result = device->CreateCommittedResource(
-//		&cbHeapProp,		//ヒープ設定
-//		D3D12_HEAP_FLAG_NONE,
-//		&cbResourceDesc,	//リソース設定
-//		D3D12_RESOURCE_STATE_GENERIC_READ,
-//		nullptr,
-//		IID_PPV_ARGS(&constBuffTransform)
-//	);
-//	assert(SUCCEEDED(result));
-//
-//
-//	//定数バッファのマッピング
-//	result = constBuffTransform->Map(0, nullptr, (void**)&constMapTransform);	//マッピング
-//	assert(SUCCEEDED(result));
-//
-//	//単位行列を代入
-//	constMapTransform->mat = XMMatrixIdentity();
-//
-//	constMapTransform->mat.r[0].m128_f32[0] = 2.0f / window_width;
-//	constMapTransform->mat.r[1].m128_f32[1] = -2.0f / window_height;
-//
-//	constMapTransform->mat.r[3].m128_f32[0] = -1.0f;
-//	constMapTransform->mat.r[3].m128_f32[1] = 1.0f;
-//
-//}
+void DXInitialize::CreateConstBufferT()
+{
+	//定数バッファの生成
+	result = device->CreateCommittedResource(
+		&cbHeapProp,		//ヒープ設定
+		D3D12_HEAP_FLAG_NONE,
+		&cbResourceDesc,	//リソース設定
+		D3D12_RESOURCE_STATE_GENERIC_READ,
+		nullptr,
+		IID_PPV_ARGS(&constBuffTransform)
+	);
+	assert(SUCCEEDED(result));
+
+
+	//定数バッファのマッピング
+	result = constBuffTransform->Map(0, nullptr, (void**)&constMapTransform);	//マッピング
+	assert(SUCCEEDED(result));
+
+	//単位行列を代入
+	constMapTransform->mat = XMMatrixIdentity();
+
+	constMapTransform->mat.r[0].m128_f32[0] = 2.0f / window_width;
+	constMapTransform->mat.r[1].m128_f32[1] = -2.0f / window_height;
+
+	constMapTransform->mat.r[3].m128_f32[0] = -1.0f;
+	constMapTransform->mat.r[3].m128_f32[1] = 1.0f;
+
+}
 
 
 void DXInitialize::ConstBufferTransform()
 {
-	//CreateConstBufferT();
+	CreateConstBufferT();
 	
 	matProjection = XMMatrixPerspectiveFovLH
 	(XMConvertToRadians(45.0f),

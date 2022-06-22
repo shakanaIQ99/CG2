@@ -106,10 +106,10 @@ static struct ConstBufferDataMaterial
 	XMFLOAT4 color;
 };
 
-//static struct ConstBufferDataTransform
-//{
-//	XMMATRIX mat;
-//};
+static struct ConstBufferDataTransform
+{
+	XMMATRIX mat;
+};
 
 
 static HRESULT result;
@@ -234,6 +234,10 @@ public:
 	//定数バッファのマッピング
 	ID3D12Resource* constBuffMaterial = nullptr;
 	ConstBufferDataMaterial* constMapMaterial = nullptr;
+
+
+	ID3D12Resource* constBuffTransform = nullptr;
+	ConstBufferDataTransform* constMapTransform = nullptr;
 
 	
 

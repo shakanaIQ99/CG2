@@ -3,7 +3,7 @@
 #include"DXInitialize.h"
 #include"Input.h"
 #include"DXWindow.h"
-#include"WorldTransform.h"
+//#include"WorldTransform.h"
 #include <DirectXTex.h>
 
 #include"Vector3.h"
@@ -44,18 +44,25 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 
 	float angle = 0.0f;
 
-	WorldTransform box;
+	//WorldTransform box;
 
-	box.Initialize();
+	//box.Initialize();
+
+	//box.scale = { 1,1,1 };
 
 	Vector3 position = Vector3(0.0f, 0.0f, 0.0f);
 	Vector3 scale = Vector3(1, 1, 1);
 	Vector3 rotation = Vector3(0, 0, 0);
 
-	Matrix4 matWorld;
+	XMMATRIX matWorld;
+	XMMATRIX matScale;
+	XMMATRIX matRot;
+	XMMATRIX matTrans;
+
+	/*Matrix4 matWorld;
 	Matrix4 matScale;
 	Matrix4 matRot;
-	Matrix4 matTrans;
+	Matrix4 matTrans;*/
 
 	//ゲームループ
 	while (true)
@@ -109,7 +116,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 			CC -= 0.0002f;
 		}
 
-		
+		//box.scale = { 1,1,1 };
 		if (_input.GetKey(DIK_UP)) { position.z += 1.0f; }
 		if (_input.GetKey(DIK_DOWN)) { position.z -= 1.0f; }
 		if (_input.GetKey(DIK_RIGHT)) { position.x += 1.0f; }
@@ -152,7 +159,17 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 		}
 
 		
-		
+		matWorld = XMMatrixIdentity();
+		matRot = XMMatrixIdentity();
+		matRot *= XMMatrixRotationZ(XMConvertToRadians(rotation.z));
+		matRot *= XMMatrixRotationX(XMConvertToRadians(rotation.x));
+		matRot *= XMMatrixRotationY(XMConvertToRadians(rotation.y));
+		matScale = XMMatrixScaling(scale.x, scale.y, scale.z);
+		matTrans = XMMatrixTranslation(position.x, position.y, position.z);
+
+		matWorld *= matScale;
+		matWorld *= matRot;
+		matWorld *= matTrans;
 		
 
 
@@ -166,7 +183,8 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 			dxInitialize.matview = XMMatrixLookAtLH(XMLoadFloat3(&dxInitialize.eye), XMLoadFloat3(&dxInitialize.target), XMLoadFloat3(&dxInitialize.up));
 
 		}
-		box.UpdateMatrix();
+		dxInitialize.constMapTransform->mat = matWorld * dxInitialize.matview * dxInitialize.matProjection;
+		//box.UpdateMatrix();
 
 		//バックバッファの番号を取得(2つなので0番か1番)
 		UINT bbIndex = dxInitialize.GetswapChain()->GetCurrentBackBufferIndex();
@@ -238,7 +256,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 		dxInitialize.GetcommandList()->SetGraphicsRootDescriptorTable(1, srvGpuHandle);
 
 		//定数バッファビュー(CBV)の設定コマンド
-		dxInitialize.GetcommandList()->SetGraphicsRootConstantBufferView(2, box.constBuffTransform->GetGPUVirtualAddress());
+		dxInitialize.GetcommandList()->SetGraphicsRootConstantBufferView(2, dxInitialize.constBuffTransform->GetGPUVirtualAddress());
 
 		//インデックスバッファビューの設定コマンド
 		dxInitialize.GetcommandList()->IASetIndexBuffer(&dxInitialize.ibView);
