@@ -23,8 +23,13 @@ IDXGISwapChain4* DXInitialize::GetswapChain()
 
 void DXInitialize::Initialize(HWND hwnd)
 {
-
 	
+	dxgiFactory = nullptr;
+	swapChain = nullptr;
+	
+	rtvHeap = nullptr;
+
+
 
 #pragma region	アダプタ
 	//DXGIファクトリーの生成
@@ -57,21 +62,7 @@ void DXInitialize::Initialize(HWND hwnd)
 
 
 
-#pragma region コマンド
 
-	//コマンドアロケーターを生成
-	result = device->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS(&commandAllocator));
-	assert(SUCCEEDED(result));
-
-	//コマンドリストを生成
-	result = device->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT, commandAllocator, nullptr, IID_PPV_ARGS(&commandList));
-	assert(SUCCEEDED(result));
-
-	//コマンドキューを生成
-	result = device->CreateCommandQueue(&commandQueueDesc, IID_PPV_ARGS(&commandQueue));
-	assert(SUCCEEDED(result));
-
-#pragma endregion	コマンド
 
 #pragma region	スワップチェーン
 
@@ -127,6 +118,11 @@ void DXInitialize::Initialize(HWND hwnd)
 
 }
 
+XMMATRIX DXInitialize::GetmatProjection()
+{
+	return matProjection;
+}
+
 ID3D12CommandAllocator* DXInitialize::GetcommandAllocator()
 {
 	return  commandAllocator;
@@ -140,13 +136,9 @@ ID3D12GraphicsCommandList* DXInitialize::GetcommandList()
 DXInitialize::DXInitialize()
 {
 	device = nullptr;
-	dxgiFactory = nullptr;
-	swapChain = nullptr;
 	commandAllocator = nullptr;
 	commandList = nullptr;
 	commandQueue = nullptr;
-	rtvHeap = nullptr;
-
 #pragma region	デバイス
 	//対応レベルの配列
 	D3D_FEATURE_LEVEL levels[] =
@@ -167,7 +159,21 @@ DXInitialize::DXInitialize()
 		}
 	}
 #pragma endregion	デバイス
+#pragma region コマンド
 
+	//コマンドアロケーターを生成
+	result = device->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS(&commandAllocator));
+	assert(SUCCEEDED(result));
+
+	//コマンドリストを生成
+	result = device->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT, commandAllocator, nullptr, IID_PPV_ARGS(&commandList));
+	assert(SUCCEEDED(result));
+
+	//コマンドキューを生成
+	result = device->CreateCommandQueue(&commandQueueDesc, IID_PPV_ARGS(&commandQueue));
+	assert(SUCCEEDED(result));
+
+#pragma endregion	コマンド
 }
 
 
@@ -185,7 +191,7 @@ void DXInitialize::DxDrawIni()
 	GraphicsPipeLine();
 	ResouceConstBfferM();
 	ConstBufferMaterial();
-	ResouceConstBfferT();
+	//ResouceConstBfferT();
 	ConstBufferTransform();
 	TextureImageData();
 	TextureBuffer();
@@ -279,6 +285,11 @@ ID3D12CommandQueue* DXInitialize::GetcommandQueue()
 ID3D12DescriptorHeap* DXInitialize::GetrtvHeap()
 {
 	return rtvHeap;
+}
+
+XMMATRIX DXInitialize::Getmatview()
+{
+	return matview;
 }
 
 
@@ -507,6 +518,9 @@ void DXInitialize::GraphicsPipeLine()
 }
 
 
+
+
+
 void DXInitialize::TextureImageData()
 {
 	//WICテクスチャのロード
@@ -660,45 +674,26 @@ void DXInitialize::ConstBufferMaterial()
 }
 void DXInitialize::ResouceConstBfferT()
 {
-	cbHeapProp.Type = D3D12_HEAP_TYPE_UPLOAD;			//GPUへの転送用
-	//リソース設定
-	cbResourceDesc.Dimension = D3D12_RESOURCE_DIMENSION_BUFFER;
-	cbResourceDesc.Width = (sizeof(ConstBufferDataTransform) + 0xff) & ~0Xff;	//256バイトアライメント
-	cbResourceDesc.Height = 1;
-	cbResourceDesc.DepthOrArraySize = 1;
-	cbResourceDesc.MipLevels = 1;
-	cbResourceDesc.SampleDesc.Count = 1;
-	cbResourceDesc.Layout = D3D12_TEXTURE_LAYOUT_ROW_MAJOR;
-
 }
 
 
 void DXInitialize::CreateConstBufferT()
 {
-	//定数バッファの生成
-	result = device->CreateCommittedResource(
-		&cbHeapProp,		//ヒープ設定
-		D3D12_HEAP_FLAG_NONE,
-		&cbResourceDesc,	//リソース設定
-		D3D12_RESOURCE_STATE_GENERIC_READ,
-		nullptr,
-		IID_PPV_ARGS(&constBuffTransform)
-	);
-	assert(SUCCEEDED(result));
 
+	for (int i = 0; i < _countof(obj); i++)
+	{
 
-	//定数バッファのマッピング
-	result = constBuffTransform->Map(0, nullptr, (void**)&constMapTransform);	//マッピング
-	assert(SUCCEEDED(result));
+		obj[i].Initialize();
+		if (i > 0)
+		{
+			obj[i].parent = &obj[i - 1];
 
-	//単位行列を代入
-	constMapTransform->mat = XMMatrixIdentity();
+			obj[i].scale = { 0.9f,0.9f,0.9f };
+			obj[i].rotation = { 0,0,XMConvertToRadians(30.0f) };
+			obj[i].translation = { 0,0,-8.0f };
+		}
 
-	constMapTransform->mat.r[0].m128_f32[0] = 2.0f / window_width;
-	constMapTransform->mat.r[1].m128_f32[1] = -2.0f / window_height;
-
-	constMapTransform->mat.r[3].m128_f32[0] = -1.0f;
-	constMapTransform->mat.r[3].m128_f32[1] = 1.0f;
+	}
 
 }
 
@@ -718,15 +713,19 @@ void DXInitialize::ConstBufferTransform()
 	target={ 0, 0, 0 };
 	up = { 0, 1, 0 };
 	matview = XMMatrixLookAtLH(XMLoadFloat3(&eye), XMLoadFloat3(&target), XMLoadFloat3(&up));
-
-	//constMapTransform->mat = matWorld * matview * matProjection;
+	
+	/*for (size_t i = 0; i < _countof(obj); i++)
+	{
+		obj[i].UpdateMatrix(matview, matProjection);
+	}*/
 }
 
 
 void DXInitialize::ShaderResourceView()
 {
 	//シェーダーリソースビュー設定
-	srvDesc.Format =resDesc.Format;
+	/*srvDesc.Format =resDesc.Format;*/
+	srvDesc.Format = resDesc.Format;
 	srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
 	srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
 	srvDesc.Texture2D.MipLevels = resDesc.MipLevels;
@@ -734,6 +733,49 @@ void DXInitialize::ShaderResourceView()
 	//ハンドルの指す位置にシェーダーリソースビュー作成
 	device->CreateShaderResourceView(texBuff, &srvDesc, srvHandle);
 }
+
+ConstBufferDataMaterial* DXInitialize::GetconstMapMaterial()
+{
+	return constMapMaterial;
+}
+
+
+
+D3D12_DESCRIPTOR_HEAP_DESC DXInitialize::GetrtvHeapDesc()
+{
+	return rtvHeapDesc;
+}
+
+ID3D12PipelineState* DXInitialize::GetpipelineState()
+{
+	return pipelineState;
+}
+
+ID3D12RootSignature* DXInitialize::GetrootSignature()
+{
+	return rootSignature;
+}
+
+ID3D12Resource* DXInitialize::GetconstBuffMaterial()
+{
+	return constBuffMaterial;
+}
+
+ID3D12Fence* DXInitialize::Getfence()
+{
+	return fence;
+}
+
+
+
+
+
+ID3D12DescriptorHeap* DXInitialize::GetdsvHeap()
+{
+	return dsvHeap;
+}
+
+
 
 void DXInitialize::DepthInitilize()
 {

@@ -1,14 +1,14 @@
-//#include "WorldTransform.h"
-//#include "DXInitialize.h"
-//#include<cmath>
-//
-//
-//
-//float ConvertRad(float dosuu);
-//
+#include "WorldTransform.h"
+#include "DXInitialize.h"
+#include<cmath>
+
+
+
+
+
 //WorldTransform::WorldTransform()
 //{
-//	matworld.IdentityMatrix4();
+//	matworld= XMMatrixIdentity();
 //	scale = Vector3(1, 1, 1);
 //	rotation = Vector3(0, 0, 0);
 //	translation = Vector3(0, 0, 0);
@@ -17,16 +17,21 @@
 //
 //void WorldTransform::Initialize()
 //{
-//	CreateConstBuffer();
-//	Map();
-//	UpdateMatrix();
-//}
-//
-//void WorldTransform::CreateConstBuffer()
-//{
-//	
 //	HRESULT result;
-//	
+//	D3D12_HEAP_PROPERTIES cbHeapProp{};
+//
+//	cbHeapProp.Type = D3D12_HEAP_TYPE_UPLOAD;			//GPUへの転送用
+//
+//	//リソース設定
+//	D3D12_RESOURCE_DESC cbResourceDesc{};
+//	cbResourceDesc.Dimension = D3D12_RESOURCE_DIMENSION_BUFFER;
+//	cbResourceDesc.Width = (sizeof(ConstBufferDataTransform) + 0xff) & ~0Xff;	//256バイトアライメント
+//	cbResourceDesc.Height = 1;
+//	cbResourceDesc.DepthOrArraySize = 1;
+//	cbResourceDesc.MipLevels = 1;
+//	cbResourceDesc.SampleDesc.Count = 1;
+//	cbResourceDesc.Layout = D3D12_TEXTURE_LAYOUT_ROW_MAJOR;
+//
 //	result = DXInitialize::GetInstance()->Getdevice()->CreateCommittedResource(
 //		&cbHeapProp,		//ヒープ設定
 //		D3D12_HEAP_FLAG_NONE,
@@ -36,22 +41,13 @@
 //		IID_PPV_ARGS(&constBuffTransform)
 //	);
 //	assert(SUCCEEDED(result));
-//}
-//
-//void WorldTransform::Map()
-//{
-//	HRESULT result = constBuffTransform->Map(0, nullptr, (void**)&constMapTransform);	//マッピング
+//	result =constBuffTransform->Map(0, nullptr, (void**)&constMapTransform);	//マッピング
 //	assert(SUCCEEDED(result));
-//	//単位行列を代入
-//	constMapTransform->mat.IdentityMatrix4();
-//
-//	constMapTransform->mat.m[0][0] = 2.0f / window_width;
-//	constMapTransform->mat.m[1][1] = -2.0f / window_height;
-//
-//	//constMapTransform->mat.m[3][0] = -1.0f;
-//	//constMapTransform->mat.m[3][1] = 1.0f;
-//
 //}
+//
+//
+//
+//
 //
 //void WorldTransform::UpdateMatrix()
 //{
@@ -59,33 +55,45 @@
 //	matworld *= ChengeRot();
 //	matworld *= ChengePos();
 //
-//	constMapTransform->mat = matworld;
+//	if (parent != nullptr)
+//	{
+//		matworld *= parent->matworld;
+//	}
+//	constMapTransform->mat = matworld * DXInitialize::GetInstance()->matview * DXInitialize::GetInstance()->matProjection;
 //}
 //
-//Matrix4 WorldTransform::ChengeRot()
+//void WorldTransform::DrawOBJ(UINT numIndices)
 //{
-//	Matrix4 matRot;
-//	Matrix4 matRotX, matRotY, matRotZ;
+//	DXInitialize::GetInstance()->commandList->IASetVertexBuffers(0, 1, &DXInitialize::GetInstance()->vbView);
+//	DXInitialize::GetInstance()->commandList->IASetIndexBuffer(&DXInitialize::GetInstance()->ibView);
+//	DXInitialize::GetInstance()->commandList->SetGraphicsRootConstantBufferView(2, DXInitialize::GetInstance()->obj->constBuffTransform->GetGPUVirtualAddress());
+//	DXInitialize::GetInstance()->commandList->DrawIndexedInstanced(numIndices, 1, 0, 0, 0);
+//}
 //
-//	matRot.IdentityMatrix4();
-//	matRotX.IdentityMatrix4();
-//	matRotY.IdentityMatrix4();
-//	matRotZ.IdentityMatrix4();
+//XMMATRIX WorldTransform::ChengeRot()
+//{
+//	XMMATRIX matRot;
+//	XMMATRIX matRotX, matRotY, matRotZ;
 //
-//	matRotX.m[1][1] = cosf(rotation.x);
-//	matRotX.m[1][2] = sinf(rotation.x);
-//	matRotX.m[2][1] = -sinf(rotation.x);
-//	matRotX.m[2][2] = cosf(rotation.x);
+//	matRot =XMMatrixIdentity();
+//	matRotX=XMMatrixIdentity();
+//	matRotY=XMMatrixIdentity();
+//	matRotZ=XMMatrixIdentity();
 //
-//	matRotY.m[0][0] = cosf(rotation.y);
-//	matRotY.m[0][2] = -sinf(rotation.y);
-//	matRotY.m[2][0] = sinf(rotation.y);
-//	matRotY.m[2][2] = cosf(rotation.y);
+//	matRotX.r[1].m128_f32[1] = cosf(rotation.x);
+//	matRotX.r[1].m128_f32[2] = sinf(rotation.x);
+//	matRotX.r[2].m128_f32[1] = -sinf(rotation.x);
+//	matRotX.r[2].m128_f32[2] = cosf(rotation.x);
 //
-//	matRotZ.m[0][0] = cosf(rotation.z);
-//	matRotZ.m[0][1] = sinf(rotation.z);
-//	matRotZ.m[1][0] = -sinf(rotation.z);
-//	matRotZ.m[1][1] = cosf(rotation.z);
+//	matRotY.r[0].m128_f32[0] = cosf(rotation.y);
+//	matRotY.r[0].m128_f32[2] = -sinf(rotation.y);
+//	matRotY.r[2].m128_f32[0] = sinf(rotation.y);
+//	matRotY.r[2].m128_f32[2] = cosf(rotation.y);
+//
+//	matRotZ.r[0].m128_f32[0] = cosf(rotation.z);
+//	matRotZ.r[0].m128_f32[1] = sinf(rotation.z);
+//	matRotZ.r[1].m128_f32[0] = -sinf(rotation.z);
+//	matRotZ.r[1].m128_f32[1] = cosf(rotation.z);
 //
 //	matRot *= matRotZ;
 //	matRot *= matRotX;
@@ -94,26 +102,26 @@
 //	return matRot;
 //}
 //
-//Matrix4 WorldTransform::ChengeScr()
+//XMMATRIX WorldTransform::ChengeScr()
 //{
-//	Matrix4 matscale;
-//	matscale.IdentityMatrix4();
+//	XMMATRIX matscale;
+//	matscale= XMMatrixIdentity();
 //
-//	matscale.m[0][0] = scale.x;
-//	matscale.m[1][1] = scale.y;
-//	matscale.m[2][2] = scale.z;
+//	matscale.r[0].m128_f32[0] = scale.x;
+//	matscale.r[1].m128_f32[1] = scale.y;
+//	matscale.r[2].m128_f32[2] = scale.z;
 //
 //	return matscale;
 //}
 //
-//Matrix4 WorldTransform::ChengePos()
+//XMMATRIX WorldTransform::ChengePos()
 //{
-//	Matrix4 matTrans;
-//	matTrans.IdentityMatrix4();
+//	XMMATRIX matTrans;
+//	matTrans= XMMatrixIdentity();
 //
-//	matTrans.m[3][0] += translation.x;
-//	matTrans.m[3][1] += translation.y;
-//	matTrans.m[3][2] += translation.z;
+//	matTrans.r[3].m128_f32[0] += translation.x;
+//	matTrans.r[3].m128_f32[1] += translation.y;
+//	matTrans.r[3].m128_f32[2] += translation.z;
 //
 //	return matTrans;
 //}

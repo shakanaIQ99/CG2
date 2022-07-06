@@ -1,25 +1,24 @@
 //#pragma once
-//#include "Matrix4.h"
+//#include<DirectXMath.h>
+//using namespace DirectX;
 //#include "Vector3.h"
 //#include <d3d12.h>
 //#include <cassert>
 //
 //const float PI_ = 3.14592654f;
 //
-//struct ConstBufferDataTransform
+//static struct ConstBufferDataTransform
 //{
-//	Matrix4 mat;
+//	XMMATRIX mat;
 //};
-//
-//
-//class WorldTransform
+//struct WorldTransform
 //{
-//public:
 //	WorldTransform();
 //
-//	ID3D12Resource* constBuffTransform = nullptr;
-//	ConstBufferDataTransform* constMapTransform = nullptr;
-//	Matrix4 matworld;
+//	ID3D12Resource* constBuffTransform;
+//	ConstBufferDataTransform* constMapTransform;
+//
+//	XMMATRIX matworld;
 //
 //	Vector3 scale;
 //	Vector3 rotation;
@@ -27,23 +26,18 @@
 //
 //	void Initialize();
 //
-//	void CreateConstBuffer();
-//
-//	void Map();
-//
 //	void UpdateMatrix();
 //
-//	Matrix4 ChengeRot();
+//	void DrawOBJ(UINT numIndices);
 //
-//	Matrix4 ChengeScr();
+//	XMMATRIX ChengeRot();
 //
-//	Matrix4 ChengePos();
+//	XMMATRIX ChengeScr();
 //
-//private:
-//	//ヒープ設定
-//	D3D12_HEAP_PROPERTIES cbHeapProp{};
-//	//リソース設定
-//	D3D12_RESOURCE_DESC cbResourceDesc{};
+//	XMMATRIX ChengePos();
 //
+//	WorldTransform* parent = nullptr;
 //};
+//
+//float ConvertRad(float dosuu);
 //

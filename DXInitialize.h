@@ -17,6 +17,8 @@ using namespace DirectX;
 
 #include"DXWindow.h"
 
+#include"Object3D.h"
+
 //#include"ViewProjection.h"
 
 //頂点データ構造体
@@ -37,37 +39,69 @@ struct Vertex
 //頂点データ
 static Vertex vertices[] =
 {
+	////x		 y     z	  u    v
+	////前
+	//{{-9.4f,-3.3f,-15.0f},{},{0.0f,1.0f}},	//左下
+	//{{-9.4f, 3.3f,-15.0f},{},{0.0f,0.0f}},	//左上
+	//{{ 9.4f,-3.3f,-15.0f},{},{1.0f,1.0f}},	//右下
+	//{{ 9.4f, 3.3f,-15.0f},{},{1.0f,0.0f}},	//右上
+	////後				{}	 ,
+	//{{-9.4f,-3.3f, 15.0f},{},{0.0f,1.0f}},	//左下
+	//{{-9.4f, 3.3f, 15.0f},{},{0.0f,0.0f}},	//左上
+	//{{ 9.4f,-3.3f, 15.0f},{},{1.0f,1.0f}},	//右下
+	//{{ 9.4f, 3.3f, 15.0f},{},{1.0f,0.0f}},	//右上
+	////左				{}	 ,
+	//{{-9.4f,-3.3f,-15.0f},{},{0.0f,1.0f}},	//左下
+	//{{-9.4f, 3.3f,-15.0f},{},{0.0f,0.0f}},	//左上
+	//{{-9.4f,-3.3f, 15.0f},{},{1.0f,1.0f}},	//右下
+	//{{-9.4f, 3.3f, 15.0f},{},{1.0f,0.0f}},	//右上
+	////右				{}	 ,
+	//{{ 9.4f,-3.3f, 15.0f},{},{0.0f,1.0f}},	//左下
+	//{{ 9.4f, 3.3f, 15.0f},{},{0.0f,0.0f}},	//左上
+	//{{ 9.4f,-3.3f,-15.0f},{},{1.0f,1.0f}},	//右下
+	//{{ 9.4f, 3.3f,-15.0f},{},{1.0f,0.0f}},	//右上
+	////下				{}	 ,
+	//{{-9.4f,-3.3f,-15.0f},{},{0.0f,1.0f}},	//左下
+	//{{ 9.4f,-3.3f,-15.0f},{},{0.0f,0.0f}},	//左上
+	//{{-9.4f,-3.3f, 15.0f},{},{1.0f,1.0f}},	//右下
+	//{{ 9.4f,-3.3f, 15.0f},{},{1.0f,0.0f}},	//右上
+	////上				{}	 ,
+	//{{-9.4f, 3.3f,-15.0f},{},{0.0f,1.0f}},	//左下
+	//{{ 9.4f, 3.3f,-15.0f},{},{0.0f,0.0f}},	//左上
+	//{{-9.4f, 3.3f, 15.0f},{},{1.0f,1.0f}},	//右下
+	//{{ 9.4f, 3.3f, 15.0f},{},{1.0f,0.0f}},	//右上
+
 	//x		 y     z	  u    v
 	//前
-	{{-9.4f,-3.3f,-15.0f},{},{0.0f,1.0f}},	//左下
-	{{-9.4f, 3.3f,-15.0f},{},{0.0f,0.0f}},	//左上
-	{{ 9.4f,-3.3f,-15.0f},{},{1.0f,1.0f}},	//右下
-	{{ 9.4f, 3.3f,-15.0f},{},{1.0f,0.0f}},	//右上
-	//後				{}	 ,
-	{{-9.4f,-3.3f, 15.0f},{},{0.0f,1.0f}},	//左下
-	{{-9.4f, 3.3f, 15.0f},{},{0.0f,0.0f}},	//左上
-	{{ 9.4f,-3.3f, 15.0f},{},{1.0f,1.0f}},	//右下
-	{{ 9.4f, 3.3f, 15.0f},{},{1.0f,0.0f}},	//右上
-	//左				{}	 ,
-	{{-9.4f,-3.3f,-15.0f},{},{0.0f,1.0f}},	//左下
-	{{-9.4f, 3.3f,-15.0f},{},{0.0f,0.0f}},	//左上
-	{{-9.4f,-3.3f, 15.0f},{},{1.0f,1.0f}},	//右下
-	{{-9.4f, 3.3f, 15.0f},{},{1.0f,0.0f}},	//右上
-	//右				{}	 ,
-	{{ 9.4f,-3.3f, 15.0f},{},{0.0f,1.0f}},	//左下
-	{{ 9.4f, 3.3f, 15.0f},{},{0.0f,0.0f}},	//左上
-	{{ 9.4f,-3.3f,-15.0f},{},{1.0f,1.0f}},	//右下
-	{{ 9.4f, 3.3f,-15.0f},{},{1.0f,0.0f}},	//右上
-	//下				{}	 ,
-	{{-9.4f,-3.3f,-15.0f},{},{0.0f,1.0f}},	//左下
-	{{ 9.4f,-3.3f,-15.0f},{},{0.0f,0.0f}},	//左上
-	{{-9.4f,-3.3f, 15.0f},{},{1.0f,1.0f}},	//右下
-	{{ 9.4f,-3.3f, 15.0f},{},{1.0f,0.0f}},	//右上
-	//上				{}	 ,
-	{{-9.4f, 3.3f,-15.0f},{},{0.0f,1.0f}},	//左下
-	{{ 9.4f, 3.3f,-15.0f},{},{0.0f,0.0f}},	//左上
-	{{-9.4f, 3.3f, 15.0f},{},{1.0f,1.0f}},	//右下
-	{{ 9.4f, 3.3f, 15.0f},{},{1.0f,0.0f}},	//右上
+	{{-5.0f,-5.0f,-5.0f},{},{0.0f,1.0f}},	//左下
+	{{-5.0f, 5.0f,-5.0f},{},{0.0f,0.0f}},	//左上
+	{{ 5.0f,-5.0f,-5.0f},{},{1.0f,1.0f}},	//右下
+	{{ 5.0f, 5.0f,-5.0f},{},{1.0f,0.0f}},	//右上
+	//後	5.90	{}	 ,
+	{{-5.0f,-5.0f, 5.0f},{},{0.0f,1.0f}},	//左下
+	{{-5.0f, 5.0f, 5.0f},{},{0.0f,0.0f}},	//左上
+	{{ 5.0f,-5.0f, 5.0f},{},{1.0f,1.0f}},	//右下
+	{{ 5.0f, 5.0f, 5.0f},{},{1.0f,0.0f}},	//右上
+	//左	5.90	{}	 ,
+	{{-5.0f,-5.0f,-5.0f},{},{0.0f,1.0f}},	//左下
+	{{-5.0f, 5.0f,-5.0f},{},{0.0f,0.0f}},	//左上
+	{{-5.0f,-5.0f, 5.0f},{},{1.0f,1.0f}},	//右下
+	{{-5.0f, 5.0f, 5.0f},{},{1.0f,0.0f}},	//右上
+	//右	5.90	{}	 ,
+	{{ 5.0f,-5.0f, 5.0f},{},{0.0f,1.0f}},	//左下
+	{{ 5.0f, 5.0f, 5.0f},{},{0.0f,0.0f}},	//左上
+	{{ 5.0f,-5.0f,-5.0f},{},{1.0f,1.0f}},	//右下
+	{{ 5.0f, 5.0f,-5.0f},{},{1.0f,0.0f}},	//右上
+	//下	5.90	{}	 ,
+	{{-5.0f,-5.0f,-5.0f},{},{0.0f,1.0f}},	//左下
+	{{ 5.0f,-5.0f,-5.0f},{},{0.0f,0.0f}},	//左上
+	{{-5.0f,-5.0f, 5.0f},{},{1.0f,1.0f}},	//右下
+	{{ 5.0f,-5.0f, 5.0f},{},{1.0f,0.0f}},	//右上
+	//上	5.90	{}	 ,
+	{{-5.0f, 5.0f,-5.0f},{},{0.0f,1.0f}},	//左下
+	{{ 5.0f, 5.0f,-5.0f},{},{0.0f,0.0f}},	//左上
+	{{-5.0f, 5.0f, 5.0f},{},{1.0f,1.0f}},	//右下
+	{{ 5.0f, 5.0f, 5.0f},{},{1.0f,0.0f}},	//右上
 };
 
 //インデックスデータ
@@ -101,15 +135,15 @@ static D3D12_INPUT_ELEMENT_DESC inputLayout[] = {
 };
 
 //定数バッファ用データ構造体(マテリアル)
-static struct ConstBufferDataMaterial
+struct ConstBufferDataMaterial
 {
 	XMFLOAT4 color;
 };
 
-static struct ConstBufferDataTransform
-{
-	XMMATRIX mat;
-};
+//struct ConstBufferDataTransform
+//{
+//	XMMATRIX mat;
+//};
 
 
 static HRESULT result;
@@ -118,9 +152,9 @@ class DXInitialize
 {
 private:
 
-	
+	DXInitialize();
 
-public:
+
 	
 	ID3D12Device* device;
 	IDXGIFactory7* dxgiFactory;
@@ -148,8 +182,6 @@ public:
 	//デスクリプタヒープの設定
 	D3D12_DESCRIPTOR_HEAP_DESC rtvHeapDesc{};
 
-	//バックバッファ
-	std::vector<ID3D12Resource*> backBuffers;
 
 	D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle;
 	//レンダーターゲットビューの設定
@@ -166,7 +198,6 @@ public:
 
 	//フェンスの生成
 	ID3D12Fence* fence;
-	UINT64 fenceVal;
 
 	//頂点データ全体のサイズ=頂点データ一つ分のサイズ*頂点データの要素数
 	UINT sizeVB;
@@ -191,11 +222,9 @@ public:
 
 	uint16_t* indexMap = nullptr;
 
-	//頂点バッファビューの作成
-	D3D12_VERTEX_BUFFER_VIEW vbView{};
 
-	//インデックスバッファビューの作成
-	D3D12_INDEX_BUFFER_VIEW ibView{};
+
+
 
 	ID3DBlob* vsBlob = nullptr; //頂点シェーダーオブジェクト
 	ID3DBlob* psBlob = nullptr; //ピクセルシェーダーオブジェクト
@@ -239,7 +268,6 @@ public:
 	ID3D12Resource* constBuffTransform = nullptr;
 	ConstBufferDataTransform* constMapTransform = nullptr;
 
-	
 
 #pragma endregion 定数バッファ
 
@@ -265,8 +293,6 @@ public:
 
 	//デスクリプタヒープの設定
 	D3D12_DESCRIPTOR_HEAP_DESC srvHeapDesc = {};
-	//設定を元にSRV用デスクリプタヒープを生成
-	ID3D12DescriptorHeap* srvHeap = nullptr;
 	//SRVヒープの先頭ハンドルを取得
 	D3D12_CPU_DESCRIPTOR_HANDLE srvHandle;
 
@@ -274,19 +300,38 @@ public:
 
 	//シェーダーリソースビュー設定
 	D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc{};	//設定構造体
+
+	
+
+
+
+public:
 	XMMATRIX matProjection;
+
+
 	XMMATRIX matview;
+	//設定を元にSRV用デスクリプタヒープを生成
+	ID3D12DescriptorHeap* srvHeap = nullptr;
+	//バックバッファ
+	std::vector<ID3D12Resource*> backBuffers;
+
 	XMFLOAT3 eye;
 	XMFLOAT3 target;
 	XMFLOAT3 up;
 
-
-public:
-
+	//頂点バッファビューの作成
+	D3D12_VERTEX_BUFFER_VIEW vbView{};
+	//インデックスバッファビューの作成
+	D3D12_INDEX_BUFFER_VIEW ibView{};
 	
 
-	DXInitialize();
+	XMMATRIX GetmatProjection();
+	XMMATRIX Getmatview();
 
+	
+	static const size_t objnum = 50;
+
+	Object3D obj[objnum];
 	
 	void Initialize(HWND hwnd);
 
@@ -302,7 +347,21 @@ public:
 
 	static DXInitialize* GetInstance();
 
+	ConstBufferDataMaterial* GetconstMapMaterial();
+	ID3D12DescriptorHeap* GetdsvHeap();
+	D3D12_DESCRIPTOR_HEAP_DESC GetrtvHeapDesc();
+
+	ID3D12PipelineState* GetpipelineState();
+
+	ID3D12RootSignature* GetrootSignature();
+
+	ID3D12Resource* GetconstBuffMaterial();
+
+	ID3D12Fence* Getfence();
 	
+	UINT64 fenceVal;
+	
+	void UpdateCB();
 
 private:
 
@@ -344,5 +403,6 @@ private:
 	void DescriptorHeap();
 
 	void ShaderResourceView();
+
 };
 
