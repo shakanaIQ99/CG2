@@ -1,5 +1,6 @@
 
 #include"DXInitialize.h"
+#include"Texture.h"
 #include"Input.h"
 #include"DXWindow.h"
 //#include"WorldTransform.h"
@@ -33,6 +34,9 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 
 
 	//変数初期化場所
+
+	Texture::GetInstance()->Initialize(L"Resources/genba.jpg");
+
 	bool color_Red = false;
 	bool color_Green =false;
 	bool color_Blue = false;
@@ -170,11 +174,11 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 		}
 
 		
-		
-		for (size_t i = 0; i < _countof(DXInitialize::GetInstance()->obj); i++)
+		DXInitialize::GetInstance()->obj[0].UpdateMatrix(DXInitialize::GetInstance()->matview, DXInitialize::GetInstance()->matProjection);
+		/*for (size_t i = 0; i < _countof(DXInitialize::GetInstance()->obj); i++)
 		{
 			DXInitialize::GetInstance()->obj[i].UpdateMatrix(DXInitialize::GetInstance()->matview , DXInitialize::GetInstance()->matProjection);
-		}
+		}*/
 
 		//バックバッファの番号を取得(2つなので0番か1番)
 		UINT bbIndex = DXInitialize::GetInstance()->GetswapChain()->GetCurrentBackBufferIndex();
@@ -237,11 +241,13 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 		DXInitialize::GetInstance()->GetcommandList()->SetGraphicsRootConstantBufferView(0, DXInitialize::GetInstance()->GetconstBuffMaterial()->GetGPUVirtualAddress());
 
 		//SRVヒープの設定コマンド
-		DXInitialize::GetInstance()->GetcommandList()->SetDescriptorHeaps(1, &DXInitialize::GetInstance()->srvHeap);
+		DXInitialize::GetInstance()->GetcommandList()->SetDescriptorHeaps(1, &Texture::GetInstance()->srvHeap);
 
 		//SRVヒープの先頭ハンドルを取得(SRVを指しているはず)
-		D3D12_GPU_DESCRIPTOR_HANDLE srvGpuHandle = DXInitialize::GetInstance()->srvHeap->GetGPUDescriptorHandleForHeapStart();
+		D3D12_GPU_DESCRIPTOR_HANDLE srvGpuHandle = Texture::GetInstance()->srvHeap->GetGPUDescriptorHandleForHeapStart();
 		
+		srvGpuHandle.ptr += Texture::GetInstance()->incrementSize;
+
 		//SRVヒープの先頭にあるSRVをルートパラメータ1番に設定
 		DXInitialize::GetInstance()->GetcommandList()->SetGraphicsRootDescriptorTable(1, srvGpuHandle);
 
@@ -254,10 +260,11 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 		////描画コマンド
 		//dxInitialize.GetcommandList()->DrawIndexedInstanced(_countof(indices), 1, 0, 0,0);	//全ての頂点を使って描画
 
-		for (int i = 0; i < _countof(DXInitialize::GetInstance()->obj); i++)
+		DXInitialize::GetInstance()->obj[0].DrawOBJ(_countof(indices));
+		/*for (int i = 0; i < _countof(DXInitialize::GetInstance()->obj); i++)
 		{
 			DXInitialize::GetInstance()->obj[i].DrawOBJ(_countof(indices));
-		}
+		}*/
 
 		//--------------4.描画コマンド　ここまで---------------//
 	#pragma endregion 描画コマンド

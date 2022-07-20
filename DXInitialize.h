@@ -208,8 +208,6 @@ private:
 	//頂点バッファの設定
 	D3D12_HEAP_PROPERTIES heapProp{};		//ヒープ設定
 	
-	//リソース設定
-	D3D12_RESOURCE_DESC	resDesc{};
 
 	//頂点バッファの生成
 	ID3D12Resource* vertBuff;
@@ -272,34 +270,43 @@ private:
 #pragma endregion 定数バッファ
 
 #pragma region 画像イメージデータ
-	TexMetadata metadata{};
-	ScratchImage scratchImg{};
-	ScratchImage mipChain{};
-#pragma endregion 画像イメージデータ
-
-#pragma region テクスチャバッファ設定
-	//ヒープ設定
-	D3D12_HEAP_PROPERTIES textureHeapProp{};
-	//リソース設定
-	D3D12_RESOURCE_DESC textureResourceDesc{};
-	//テクスチャバッファの生成
-	ID3D12Resource* texBuff = nullptr;
+//	TexMetadata metadata{};
+//	ScratchImage scratchImg{};
+//
+//	TexMetadata metadata2{};
+//	ScratchImage scratchImg2{};
+//
+//	ScratchImage mipChain{};
+//#pragma endregion 画像イメージデータ
+//
+//#pragma region テクスチャバッファ設定
+//	//ヒープ設定
+//	D3D12_HEAP_PROPERTIES textureHeapProp{};
+//	//リソース設定
+//	D3D12_RESOURCE_DESC textureResourceDesc{};
+//	//テクスチャバッファの生成
+//	ID3D12Resource* texBuff = nullptr;
+//
+//	//テクスチャバッファの生成
+//	ID3D12Resource* texBuff2 = nullptr;
 #pragma endregion テクスチャバッファ設定
 
 #pragma region デスクリプタヒープ設定
 
 	//SRVの最大数
-	const size_t kMaxSRVCount = 2056;
+//	const size_t kMaxSRVCount = 2056;
+//
+//	//デスクリプタヒープの設定
+//	D3D12_DESCRIPTOR_HEAP_DESC srvHeapDesc = {};
+//	//SRVヒープの先頭ハンドルを取得
+//	D3D12_CPU_DESCRIPTOR_HANDLE srvHandle;
+//
+//#pragma endregion デスクリプタヒープ設定
+//
+//	//シェーダーリソースビュー設定
+//	D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc{};	//設定構造体
 
-	//デスクリプタヒープの設定
-	D3D12_DESCRIPTOR_HEAP_DESC srvHeapDesc = {};
-	//SRVヒープの先頭ハンドルを取得
-	D3D12_CPU_DESCRIPTOR_HANDLE srvHandle;
-
-#pragma endregion デスクリプタヒープ設定
-
-	//シェーダーリソースビュー設定
-	D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc{};	//設定構造体
+	
 
 	
 
@@ -308,10 +315,12 @@ private:
 public:
 	XMMATRIX matProjection;
 
+	//リソース設定
+	D3D12_RESOURCE_DESC	resDesc{};
 
 	XMMATRIX matview;
-	//設定を元にSRV用デスクリプタヒープを生成
-	ID3D12DescriptorHeap* srvHeap = nullptr;
+	////設定を元にSRV用デスクリプタヒープを生成
+	//ID3D12DescriptorHeap* srvHeap = nullptr;
 	//バックバッファ
 	std::vector<ID3D12Resource*> backBuffers;
 
@@ -394,11 +403,12 @@ private:
 
 	void ConstBufferTransform();
 
-	void TextureImageData();
+	//void TextureImageData(const wchar_t *str);
+	//
 
-	void TextureBuffer();
+	//void TextureBuffer();
 
-	void TBufferTransfer();
+	//void TBufferTransfer();
 
 	void DescriptorHeap();
 
