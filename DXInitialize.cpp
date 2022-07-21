@@ -6,17 +6,17 @@ using namespace DirectX;
 
 
 
-ID3D12Device* DXInitialize::Getdevice()
+ComPtr<ID3D12Device> DXInitialize::Getdevice()
 {
 	return device;
 }
 
-IDXGIFactory7* DXInitialize::GetdxgiFactory()
+ComPtr<IDXGIFactory7> DXInitialize::GetdxgiFactory()
 {
 	return dxgiFactory;
 }
 
-IDXGISwapChain4* DXInitialize::GetswapChain()
+ComPtr<IDXGISwapChain4> DXInitialize::GetswapChain()
 {
 	return swapChain;
 }
@@ -42,7 +42,7 @@ void DXInitialize::Initialize(HWND hwnd)
 	for (UINT i = 0; dxgiFactory->EnumAdapterByGpuPreference(i, DXGI_GPU_PREFERENCE_HIGH_PERFORMANCE, IID_PPV_ARGS(&tmpAdapter)) != DXGI_ERROR_NOT_FOUND; i++)
 	{
 		//動的に配列を追加する
-		adapters.push_back(tmpAdapter);
+		adapters.push_back(tmpAdapter.Get());
 	}
 	for (size_t i = 0; i < adapters.size(); i++)
 	{
@@ -75,8 +75,11 @@ void DXInitialize::Initialize(HWND hwnd)
 	swapChainDesc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;		//フリップ後は破棄
 	swapChainDesc.Flags = DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;	//スワップチェーンの生成
 
-	result = dxgiFactory->CreateSwapChainForHwnd(commandQueue, hwnd, &swapChainDesc, nullptr, nullptr, (IDXGISwapChain1**)&swapChain);
+	ComPtr<IDXGISwapChain1> swapchain1;
+
+	result = dxgiFactory->CreateSwapChainForHwnd(commandQueue.Get(), hwnd, &swapChainDesc, nullptr, nullptr,&swapchain1);
 	assert(SUCCEEDED(result));
+	swapchain1.As(&swapChain);
 #pragma endregion	スワップチェーン
 
 #pragma region	デスクリプタヒープ
@@ -105,7 +108,7 @@ void DXInitialize::Initialize(HWND hwnd)
 		rtvDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM_SRGB;
 		rtvDesc.ViewDimension = D3D12_RTV_DIMENSION_TEXTURE2D;
 		//レンダーターゲットビューの生成
-		device->CreateRenderTargetView(backBuffers[i], &rtvDesc, rtvHandle);
+		device->CreateRenderTargetView(backBuffers[i].Get(), &rtvDesc, rtvHandle);
 	}
 #pragma endregion	レンダーターゲットビュー
 
@@ -123,12 +126,12 @@ XMMATRIX DXInitialize::GetmatProjection()
 	return matProjection;
 }
 
-ID3D12CommandAllocator* DXInitialize::GetcommandAllocator()
+ComPtr<ID3D12CommandAllocator> DXInitialize::GetcommandAllocator()
 {
 	return  commandAllocator;
 }
 
-ID3D12GraphicsCommandList* DXInitialize::GetcommandList()
+ComPtr<ID3D12GraphicsCommandList> DXInitialize::GetcommandList()
 {
 	return commandList;
 }
@@ -151,7 +154,7 @@ DXInitialize::DXInitialize()
 	for (size_t i = 0; i < _countof(levels); i++)
 	{
 		//採用したアダプターでデバイスを生成
-		result = D3D12CreateDevice(tmpAdapter, levels[i], IID_PPV_ARGS(&device));
+		result = D3D12CreateDevice(tmpAdapter.Get(), levels[i], IID_PPV_ARGS(&device));
 		if (result == S_OK)
 		{
 			featureLevel = levels[i];
@@ -166,7 +169,7 @@ DXInitialize::DXInitialize()
 	assert(SUCCEEDED(result));
 
 	//コマンドリストを生成
-	result = device->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT, commandAllocator, nullptr, IID_PPV_ARGS(&commandList));
+	result = device->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT, commandAllocator.Get(), nullptr, IID_PPV_ARGS(&commandList));
 	assert(SUCCEEDED(result));
 
 	//コマンドキューを生成
@@ -276,12 +279,12 @@ void DXInitialize::housenn()
 
 }
 
-ID3D12CommandQueue* DXInitialize::GetcommandQueue()
+ComPtr<ID3D12CommandQueue> DXInitialize::GetcommandQueue()
 {
 	return commandQueue;
 }
 
-ID3D12DescriptorHeap* DXInitialize::GetrtvHeap()
+ComPtr<ID3D12DescriptorHeap> DXInitialize::GetrtvHeap()
 {
 	return rtvHeap;
 }
@@ -506,10 +509,10 @@ void DXInitialize::GraphicsPipeLine()
 	assert(SUCCEEDED(result));
 	result = device->CreateRootSignature(0, rootSigBlob->GetBufferPointer(), rootSigBlob->GetBufferSize(), IID_PPV_ARGS(&rootSignature));
 	assert(SUCCEEDED(result));
-	rootSigBlob->Release();
+	
 
 	//パイプラインにルートシグネチャをセット
-	pipelineDesc.pRootSignature = rootSignature;
+	pipelineDesc.pRootSignature = rootSignature.Get();
 
 	//パイプラインステートの生成
 	result = device->CreateGraphicsPipelineState(&pipelineDesc, IID_PPV_ARGS(&pipelineState));
@@ -753,22 +756,22 @@ D3D12_DESCRIPTOR_HEAP_DESC DXInitialize::GetrtvHeapDesc()
 	return rtvHeapDesc;
 }
 
-ID3D12PipelineState* DXInitialize::GetpipelineState()
+ComPtr<ID3D12PipelineState> DXInitialize::GetpipelineState()
 {
 	return pipelineState;
 }
 
-ID3D12RootSignature* DXInitialize::GetrootSignature()
+ComPtr<ID3D12RootSignature> DXInitialize::GetrootSignature()
 {
 	return rootSignature;
 }
 
-ID3D12Resource* DXInitialize::GetconstBuffMaterial()
+ComPtr<ID3D12Resource> DXInitialize::GetconstBuffMaterial()
 {
 	return constBuffMaterial;
 }
 
-ID3D12Fence* DXInitialize::Getfence()
+ComPtr<ID3D12Fence> DXInitialize::Getfence()
 {
 	return fence;
 }
@@ -777,7 +780,7 @@ ID3D12Fence* DXInitialize::Getfence()
 
 
 
-ID3D12DescriptorHeap* DXInitialize::GetdsvHeap()
+ComPtr<ID3D12DescriptorHeap> DXInitialize::GetdsvHeap()
 {
 	return dsvHeap;
 }
@@ -816,7 +819,7 @@ void DXInitialize::DepthInitilize()
 	dsvDesc.Format = DXGI_FORMAT_D32_FLOAT;
 	dsvDesc.ViewDimension = D3D12_DSV_DIMENSION_TEXTURE2D;
 	device->CreateDepthStencilView(
-		depthBuff,
+		depthBuff.Get(),
 		&dsvDesc,
 		dsvHeap->GetCPUDescriptorHandleForHeapStart()
 	);

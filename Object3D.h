@@ -5,6 +5,10 @@ using namespace DirectX;
 #include <d3d12.h>
 #include <cassert>
 
+#include<wrl.h>
+
+using namespace Microsoft::WRL;
+
 const float PI_ = 3.14592654f;
 
 struct ConstBufferDataTransform
@@ -17,7 +21,7 @@ struct Object3D
 	Object3D();
 
 
-	ID3D12Resource* constBuffTransform;
+	ComPtr<ID3D12Resource> constBuffTransform;
 	ConstBufferDataTransform* constMapTransform;
 
 	XMMATRIX matworld;

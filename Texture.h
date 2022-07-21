@@ -3,6 +3,10 @@
 #include<cassert>
 #include <DirectXTex.h>
 
+#include<wrl.h>
+
+using namespace Microsoft::WRL;
+
 
 class Texture
 {
@@ -39,9 +43,9 @@ private:
 
 public:
 	//テクスチャバッファの生成
-	ID3D12Resource* texBuff = nullptr;
+	ComPtr<ID3D12Resource> texBuff = nullptr;
 	//設定を元にSRV用デスクリプタヒープを生成
-	ID3D12DescriptorHeap* srvHeap = nullptr;
+	ComPtr<ID3D12DescriptorHeap> srvHeap = nullptr;
 
 	UINT incrementSize;
 

@@ -185,7 +185,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 
 		//1.リソースバリアで書き込み可能に変更
 		D3D12_RESOURCE_BARRIER barrierDesc{};
-		barrierDesc.Transition.pResource = DXInitialize::GetInstance()->backBuffers[bbIndex];				//バックバッファを指定
+		barrierDesc.Transition.pResource = DXInitialize::GetInstance()->backBuffers[bbIndex].Get();				//バックバッファを指定
 		barrierDesc.Transition.StateBefore = D3D12_RESOURCE_STATE_PRESENT;		//表示状態から
 		barrierDesc.Transition.StateAfter = D3D12_RESOURCE_STATE_RENDER_TARGET;	//描画状態へ
 		DXInitialize::GetInstance()->GetcommandList()->ResourceBarrier(1, &barrierDesc);
@@ -228,8 +228,8 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 		DXInitialize::GetInstance()->GetcommandList()->RSSetScissorRects(1, &scissorRect);
 
 		//パイプラインステートとルートシグネチャの設定コマンド
-		DXInitialize::GetInstance()->GetcommandList()->SetPipelineState(DXInitialize::GetInstance()->GetpipelineState());
-		DXInitialize::GetInstance()->GetcommandList()->SetGraphicsRootSignature(DXInitialize::GetInstance()->GetrootSignature());
+		DXInitialize::GetInstance()->GetcommandList()->SetPipelineState(DXInitialize::GetInstance()->GetpipelineState().Get());
+		DXInitialize::GetInstance()->GetcommandList()->SetGraphicsRootSignature(DXInitialize::GetInstance()->GetrootSignature().Get());
 		
 		//プリミティブ形状の設定コマンド
 		DXInitialize::GetInstance()->GetcommandList()->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);	//三角形リスト
@@ -241,7 +241,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 		DXInitialize::GetInstance()->GetcommandList()->SetGraphicsRootConstantBufferView(0, DXInitialize::GetInstance()->GetconstBuffMaterial()->GetGPUVirtualAddress());
 
 		//SRVヒープの設定コマンド
-		DXInitialize::GetInstance()->GetcommandList()->SetDescriptorHeaps(1, &Texture::GetInstance()->srvHeap);
+		DXInitialize::GetInstance()->GetcommandList()->SetDescriptorHeaps(1, Texture::GetInstance()->srvHeap.GetAddressOf());
 
 		//SRVヒープの先頭ハンドルを取得(SRVを指しているはず)
 		D3D12_GPU_DESCRIPTOR_HANDLE srvGpuHandle = Texture::GetInstance()->srvHeap->GetGPUDescriptorHandleForHeapStart();
@@ -277,7 +277,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 		result = DXInitialize::GetInstance()->GetcommandList()->Close();
 		assert(SUCCEEDED(result));
 		//コマンドリストの実行
-		ID3D12CommandList* commandLists[] = { DXInitialize::GetInstance()->GetcommandList() };
+		ID3D12CommandList* commandLists[] = { DXInitialize::GetInstance()->GetcommandList().Get()};
 		DXInitialize::GetInstance()->GetcommandQueue()->ExecuteCommandLists(1, commandLists);
 
 		//画面に表示するバッファをフリップ(裏表の入れ替え)
@@ -285,7 +285,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 		assert(SUCCEEDED(result));
 
 		//コマンドの実行完了を待つ
-		DXInitialize::GetInstance()->GetcommandQueue()->Signal(DXInitialize::GetInstance()->Getfence(), ++DXInitialize::GetInstance()->fenceVal);
+		DXInitialize::GetInstance()->GetcommandQueue()->Signal(DXInitialize::GetInstance()->Getfence().Get(), ++DXInitialize::GetInstance()->fenceVal);
 		if (DXInitialize::GetInstance()->Getfence()->GetCompletedValue() != DXInitialize::GetInstance()->fenceVal)
 		{
 			HANDLE event = CreateEvent(nullptr, false, false, nullptr);
@@ -298,7 +298,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 		result = DXInitialize::GetInstance()->GetcommandAllocator()->Reset();
 		assert(SUCCEEDED(result));
 		//再びコマンドリストをためる準備
-		result = DXInitialize::GetInstance()->GetcommandList()->Reset(DXInitialize::GetInstance()->GetcommandAllocator(), nullptr);
+		result = DXInitialize::GetInstance()->GetcommandList()->Reset(DXInitialize::GetInstance()->GetcommandAllocator().Get(), nullptr);
 		assert(SUCCEEDED(result));
 
 

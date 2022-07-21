@@ -77,7 +77,7 @@ void Texture::CreateSRV()
 	srvDesc.Texture2D.MipLevels = DXInitialize::GetInstance()->resDesc.MipLevels;
 
 	//ハンドルの指す位置にシェーダーリソースビュー作成
-	DXInitialize::GetInstance()->Getdevice()->CreateShaderResourceView(texBuff, &srvDesc, srvHandle);
+	DXInitialize::GetInstance()->Getdevice()->CreateShaderResourceView(texBuff.Get(), &srvDesc, srvHandle);
 }
 
 void Texture::TextureBufferTransfer()
