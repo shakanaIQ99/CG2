@@ -8,6 +8,8 @@
 
 #include"Vector3.h"
 
+void ConvertCont(int num);
+
 //Windowsアプリでのエントリーポイント(main関数)
 int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 {
@@ -47,17 +49,13 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 
 	float angle = 0.0f;
 
-	//WorldTransform box;
-
-	//box.Initialize();
-
-	//box.scale = { 1,1,1 };
+	int num = 0;
 
 	XMFLOAT3 position = { 0.0f, 0.0f, 0.0f };
 	Vector3 scale = Vector3(1, 1, 1);
 	Vector3 rotation = Vector3(0, 0, 0);
 
-	XMMATRIX matTrans;
+	//XMMATRIX matTrans;
 
 	/*Matrix4 matWorld;
 	Matrix4 matScale;
@@ -117,9 +115,46 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 		}
 
 		//box.scale = { 1,1,1 };
-		if (_input.GetKey(DIK_Z)) {  }
-		if (_input.GetKey(DIK_X)) { rotation.x += 1.0f; }
-		if (_input.GetKey(DIK_Y)) { rotation.y += 1.0f; }
+		if (_input.GetPressKey(DIK_C))
+		{
+			switch (num)
+			{
+				case 0:
+					num = 1;
+					break;
+				case 1:
+					num = 0;
+					break;
+			}
+		}
+
+		if (num == 0)
+		{
+			if (_input.GetKey(DIK_UP)) { DXInitialize::GetInstance()->obj[0].translation.y += 1.0f; }
+			if (_input.GetKey(DIK_DOWN)) { DXInitialize::GetInstance()->obj[0].translation.y -= 1.0f; }
+			if (_input.GetKey(DIK_RIGHT)) { DXInitialize::GetInstance()->obj[0].translation.x += 1.0f; }
+			if (_input.GetKey(DIK_LEFT)) { DXInitialize::GetInstance()->obj[0].translation.x -= 1.0f; }
+			if (_input.GetKey(DIK_W)) { DXInitialize::GetInstance()->obj[0].translation.z += 1.0f; }
+			if (_input.GetKey(DIK_S)) { DXInitialize::GetInstance()->obj[0].translation.z -= 1.0f; }
+			if (_input.GetKey(DIK_Z)) { DXInitialize::GetInstance()->obj[0].rotation.z += 0.02f; }
+			if (_input.GetKey(DIK_X)) { DXInitialize::GetInstance()->obj[0].rotation.x += 0.02f; }
+			if (_input.GetKey(DIK_Y)) { DXInitialize::GetInstance()->obj[0].rotation.y += 0.02f; }
+		}
+		if (num == 1)
+		{
+			if (_input.GetKey(DIK_UP)) { DXInitialize::GetInstance()->obj[1].translation.y += 1.0f; }
+			if (_input.GetKey(DIK_DOWN)) { DXInitialize::GetInstance()->obj[1].translation.y -= 1.0f; }
+			if (_input.GetKey(DIK_RIGHT)) { DXInitialize::GetInstance()->obj[1].translation.x += 1.0f; }
+			if (_input.GetKey(DIK_LEFT)) { DXInitialize::GetInstance()->obj[1].translation.x -= 1.0f; }
+			if (_input.GetKey(DIK_W)) { DXInitialize::GetInstance()->obj[1].translation.z += 1.0f; }
+			if (_input.GetKey(DIK_S)) { DXInitialize::GetInstance()->obj[1].translation.z -= 1.0f; }
+			if (_input.GetKey(DIK_Z)) { DXInitialize::GetInstance()->obj[1].rotation.z += 0.02f; }
+			if (_input.GetKey(DIK_X)) { DXInitialize::GetInstance()->obj[1].rotation.x += 0.02f; }
+			if (_input.GetKey(DIK_Y)) { DXInitialize::GetInstance()->obj[1].rotation.y += 0.02f; }
+		}
+		
+		
+
 		if (!_input.GetKey(DIK_SPACE))
 		{
 			if (color_Red)
@@ -153,14 +188,11 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 			
 			
 		}
-
+		if(DXInitialize::GetInstance()->GetconstMapMaterial()->color.w>=0|| DXInitialize::GetInstance()->GetconstMapMaterial()->color.w <= 1)
+		if (_input.GetKey(DIK_Q)) { DXInitialize::GetInstance()->GetconstMapMaterial()->color.w += CC; }
+		if (_input.GetKey(DIK_E)) { DXInitialize::GetInstance()->GetconstMapMaterial()->color.w -= CC; }
 		
 		
-		if (_input.GetKey(DIK_UP)) { DXInitialize::GetInstance()->obj[0].translation.y += 1.0f; }
-		if (_input.GetKey(DIK_DOWN)) { DXInitialize::GetInstance()->obj[0].translation.y -= 1.0f; }
-		if (_input.GetKey(DIK_RIGHT)) { DXInitialize::GetInstance()->obj[0].translation.x += 1.0f; }
-		if (_input.GetKey(DIK_LEFT)) { DXInitialize::GetInstance()->obj[0].translation.x -= 1.0f; }
-
 
 		if (_input.GetKey(DIK_D) || _input.GetKey(DIK_A))
 		{
@@ -175,6 +207,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 
 		
 		DXInitialize::GetInstance()->obj[0].UpdateMatrix(DXInitialize::GetInstance()->matview, DXInitialize::GetInstance()->matProjection);
+		DXInitialize::GetInstance()->obj[1].UpdateMatrix(DXInitialize::GetInstance()->matview, DXInitialize::GetInstance()->matProjection);
 		/*for (size_t i = 0; i < _countof(DXInitialize::GetInstance()->obj); i++)
 		{
 			DXInitialize::GetInstance()->obj[i].UpdateMatrix(DXInitialize::GetInstance()->matview , DXInitialize::GetInstance()->matProjection);
@@ -259,7 +292,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 
 		////描画コマンド
 		//dxInitialize.GetcommandList()->DrawIndexedInstanced(_countof(indices), 1, 0, 0,0);	//全ての頂点を使って描画
-
+		DXInitialize::GetInstance()->obj[1].DrawOBJ(3);
 		DXInitialize::GetInstance()->obj[0].DrawOBJ(_countof(indices));
 		/*for (int i = 0; i < _countof(DXInitialize::GetInstance()->obj); i++)
 		{

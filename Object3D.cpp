@@ -3,6 +3,7 @@
 
 Object3D::Object3D()
 {
+	//constMapTransform->mat= XMMatrixIdentity();
 	matworld = XMMatrixIdentity();
 	scale = { 1,1,1 };
 	rotation = { 0,0,0 };

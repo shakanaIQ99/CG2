@@ -80,6 +80,18 @@ void Texture::CreateSRV()
 	DXInitialize::GetInstance()->Getdevice()->CreateShaderResourceView(texBuff.Get(), &srvDesc, srvHandle);
 }
 
+void Texture::CreateSRV2()
+{
+	//シェーダーリソースビュー設定
+	srvDesc.Format = DXInitialize::GetInstance()->resDesc.Format;
+	srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
+	srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
+	srvDesc.Texture2D.MipLevels = DXInitialize::GetInstance()->resDesc.MipLevels;
+
+	//ハンドルの指す位置にシェーダーリソースビュー作成
+	DXInitialize::GetInstance()->Getdevice()->CreateShaderResourceView(texBuff.Get(), &srvDesc, srvHandle);
+}
+
 void Texture::TextureBufferTransfer()
 {
 	//全ミップマップについて

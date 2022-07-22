@@ -267,8 +267,8 @@ private:
 	ConstBufferDataMaterial* constMapMaterial = nullptr;
 
 
-	ComPtr<ID3D12Resource> constBuffTransform = nullptr;
-	ConstBufferDataTransform* constMapTransform = nullptr;
+	/*ComPtr<ID3D12Resource> constBuffTransform = nullptr;
+	ConstBufferDataTransform* constMapTransform = nullptr;*/
 
 
 #pragma endregion 定数バッファ
@@ -372,8 +372,6 @@ public:
 	ComPtr<ID3D12Fence> Getfence();
 	
 	UINT64 fenceVal;
-	
-	void UpdateCB();
 
 private:
 
@@ -412,10 +410,6 @@ private:
 	//void TextureBuffer();
 
 	//void TBufferTransfer();
-
-	void DescriptorHeap();
-
-	void ShaderResourceView();
 
 };
 

@@ -59,6 +59,8 @@ public:
 
 	void CreateSRV();
 
+	void CreateSRV2();
+
 	void TextureBufferTransfer();
 
 	void DescriptorHeap();
