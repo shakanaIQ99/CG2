@@ -17,22 +17,38 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 	DXWindow _window;
 #ifdef _DEBUG
 	//デバッグレイヤーをオンに
-	ID3D12Debug* debugController;
+	ComPtr<ID3D12Debug1> debugController;
+	ComPtr<ID3D12InfoQueue> infoQueue;
 	if (SUCCEEDED(D3D12GetDebugInterface(IID_PPV_ARGS(&debugController))))
 	{
 		debugController->EnableDebugLayer();
+		debugController->SetEnableGPUBasedValidation(TRUE);
 	}
+
+	
 	
 #endif	
 	HRESULT result;
 	//DirectX初期化処理
 	DXInitialize::GetInstance()->Initialize(_window.hwnd);
+
 	
 	//入力関数
 	Input _input(_window.w, _window.hwnd);
 
 	DXInitialize::GetInstance()->DxDrawIni();
-
+//#ifdef _DEBUG
+//	//デバッグレイヤーをオンに
+//	ID3D12InfoQueue* infoQueue;
+//	if (SUCCEEDED(DXInitialize::GetInstance()->Getdevice().Get()->QueryInterface(IID_PPV_ARGS(&infoQueue))))
+//	{
+//		infoQueue->SetBreakOnSeverity(D3D12_MESSAGE_SEVERITY_CORRUPTION, true);
+//		infoQueue->SetBreakOnSeverity(D3D12_MESSAGE_SEVERITY_ERROR, true);
+//		infoQueue->Release();
+//	}
+//
+//#endif	
+//
 
 
 	//変数初期化場所
